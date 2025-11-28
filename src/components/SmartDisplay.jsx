@@ -512,6 +512,8 @@ const SmartDisplay = () => {
     const [fetchError, setFetchError] = useState(null);
     const [demoMode, setDemoMode] = useState(false);
     const [demoState, setDemoState] = useState('RAIN');
+    const [serverUrl, setServerUrl] = useState(() => localStorage.getItem('config_server_url') || '');
+    const [useRemoteConfig, setUseRemoteConfig] = useState(() => localStorage.getItem('use_remote_config') === 'true');
 
     const [weather, setWeather] = useState({
         state: "sunny",
@@ -590,6 +592,30 @@ const SmartDisplay = () => {
         const weatherTimer = setInterval(fetchWeather, 600000);
         return () => clearInterval(weatherTimer);
     }, [config, demoMode, demoState]);
+
+    // --- 3. 远程配置同步 ---
+    useEffect(() => {
+        if (!useRemoteConfig || !serverUrl) return;
+        
+        const loadRemoteConfig = async () => {
+            try {
+                const response = await fetch(`${serverUrl}/api/config`);
+                if (response.ok) {
+                    const remoteConfig = await response.json();
+                    setConfig(remoteConfig);
+                    setEditConfig(remoteConfig);
+                    if (remoteConfig.demo_mode !== undefined) setDemoMode(remoteConfig.demo_mode);
+                    if (remoteConfig.demo_state) setDemoState(remoteConfig.demo_state);
+                }
+            } catch (error) {
+                console.error('Remote config sync failed:', error);
+            }
+        };
+        
+        loadRemoteConfig();
+        const interval = setInterval(loadRemoteConfig, 30000);
+        return () => clearInterval(interval);
+    }, [useRemoteConfig, serverUrl]);
 
     // --- 事件处理 ---
     const handleSaveConfig = () => {
@@ -886,6 +912,50 @@ const SmartDisplay = () => {
                                                 {demoMode ? 'ON' : 'OFF'}
                                             </button>
                                         </div>
+                                    </div>
+
+                                    <div className="glass-panel rounded-2xl p-5 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-3 bg-purple-500/20 rounded-xl">
+                                                    <Settings className="text-purple-400" size={24} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-white font-medium text-lg">远程配置</p>
+                                                    <p className="text-xs text-white/40 mt-1">从局域网服务器同步配置</p>
+                                                </div>
+                                            </div>
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={useRemoteConfig}
+                                                    onChange={(e) => {
+                                                        const checked = e.target.checked;
+                                                        setUseRemoteConfig(checked);
+                                                        localStorage.setItem('use_remote_config', checked);
+                                                    }}
+                                                    className="sr-only peer"
+                                                />
+                                                <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                                            </label>
+                                        </div>
+                                        
+                                        {useRemoteConfig && (
+                                            <div className="space-y-2">
+                                                <label className="text-sm text-white/60 block">服务器地址</label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="http://192.168.1.100:3001"
+                                                    value={serverUrl}
+                                                    onChange={(e) => {
+                                                        setServerUrl(e.target.value);
+                                                        localStorage.setItem('config_server_url', e.target.value);
+                                                    }}
+                                                    className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:border-purple-500/50 transition-colors font-mono text-sm"
+                                                />
+                                                <p className="text-xs text-white/40">💡 在显示设备上运行: npm run server</p>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="space-y-6">
