@@ -1,8 +1,8 @@
 {
-  "ha_url": "",
-  "ha_token": "",
-  "weather_entity": "weather.forecast_home",
-  "location_name": "北京市",
+  "ha_url": "http://192.168.101.75:8123",
+  "ha_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2MDg4OTYwZTdhNDI0OTAzYWRlNTVlMmZlMDFlOTM0MCIsImlhdCI6MTc2NDExOTYwMywiZXhwIjoyMDc5NDc5NjAzfQ.0uJopptOy4Pr4KgaeKPFUcGo2CPMAKg5iqPNTR8lxd4",
+  "weather_entity": "weather.wo_de_jia_2",
+  "location_name": "康桥公馆",
   "demo_mode": false,
-  "demo_state": "CLEAR_DAY"
+  "demo_state": "HEAVY_SNOW"
 }

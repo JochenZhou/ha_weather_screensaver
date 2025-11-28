@@ -561,11 +561,9 @@ const SmartDisplay = () => {
         }
     }, []);
 
-    // --- 2. 获取 Home Assistant 天气数据 ---
+    // --- 2. 演示模式天气更新 ---
     useEffect(() => {
         if (demoMode) {
-            localStorage.setItem('demo_mode', 'true');
-            localStorage.setItem('demo_state', demoState);
             setWeather({
                 state: demoState,
                 mappedKey: normalizeWeatherState(demoState),
@@ -573,8 +571,12 @@ const SmartDisplay = () => {
                 attributes: {}
             });
             setFetchError(null);
-            return;
         }
+    }, [demoMode, demoState]);
+
+    // --- 3. 获取 Home Assistant 天气数据 ---
+    useEffect(() => {
+        if (demoMode) return;
 
         const fetchWeather = async () => {
             if (!config.ha_url || !config.ha_token) {
@@ -623,41 +625,45 @@ const SmartDisplay = () => {
         fetchWeather();
         const weatherTimer = setInterval(fetchWeather, 600000);
         return () => clearInterval(weatherTimer);
-    }, [config, demoMode, demoState]);
+    }, [config, demoMode]);
 
-    // --- 3. 远程配置同步 ---
+    // --- 4. 远程配置同步 ---
     useEffect(() => {
-        if (!useRemoteConfig || !serverUrl) return;
-        
+        if (!useRemoteConfig) return;
+
         const loadRemoteConfig = async () => {
             try {
-                const cleanUrl = serverUrl.trim().replace(/\/$/, '');
-                const apiUrl = cleanUrl.includes('/api/config') ? cleanUrl : `${cleanUrl}/api/config`;
-                
+                const apiUrl = serverUrl ? `${serverUrl.trim().replace(/\/$/, '')}/api/config` : `http://${deviceIP}:3001/api/config`;
+
                 const response = await fetch(apiUrl, {
                     method: 'GET',
                     headers: { 'Content-Type': 'application/json' },
                     mode: 'cors'
                 });
-                
+
                 if (response.ok) {
                     const remoteConfig = await response.json();
                     setConfig(remoteConfig);
                     setEditConfig(remoteConfig);
-                    if (remoteConfig.demo_mode !== undefined) setDemoMode(remoteConfig.demo_mode);
-                    if (remoteConfig.demo_state) setDemoState(remoteConfig.demo_state);
+                    if (remoteConfig.demo_mode !== undefined) {
+                        setDemoMode(remoteConfig.demo_mode);
+                        localStorage.setItem('demo_mode', remoteConfig.demo_mode);
+                    }
+                    if (remoteConfig.demo_state) {
+                        setDemoState(remoteConfig.demo_state);
+                        localStorage.setItem('demo_state', remoteConfig.demo_state);
+                    }
                     setFetchError(null);
                 }
             } catch (error) {
                 console.error('Remote config sync failed:', error);
-                setFetchError('远程配置连接失败');
             }
         };
-        
+
         loadRemoteConfig();
-        const interval = setInterval(loadRemoteConfig, 30000);
+        const interval = setInterval(loadRemoteConfig, 3000);
         return () => clearInterval(interval);
-    }, [useRemoteConfig, serverUrl]);
+    }, [useRemoteConfig, serverUrl, deviceIP]);
 
     // --- 事件处理 ---
     const handleSaveConfig = () => {
@@ -741,15 +747,16 @@ const SmartDisplay = () => {
                 }
             }
 
+            const isPast = d < now.getDate();
             days.push(
                 <div key={d} className="flex flex-col items-center justify-center py-2 relative group h-16">
                     {isActive && (
                         <div className="absolute inset-0 m-auto w-14 h-14 bg-white/20 border border-white/40 rounded-2xl backdrop-blur-md shadow-lg transition-all duration-300"></div>
                     )}
-                    <span className={`text-2xl z-10 font-medium transition-colors ${isActive ? 'text-white' : 'text-white/80'}`}>
+                    <span className={`text-2xl z-10 font-medium transition-colors ${isActive ? 'text-white' : isPast ? 'text-white/40' : 'text-white/80'}`}>
                         {d}
                     </span>
-                    <span className={`text-[10px] mt-0.5 z-10 font-light transition-colors ${isActive ? 'text-white' : 'text-white/60'} ${lunarText.length > 2 ? 'scale-90' : ''}`}>
+                    <span className={`text-[10px] mt-0.5 z-10 font-light transition-colors ${isActive ? 'text-white' : isPast ? 'text-white/30' : 'text-white/60'} ${lunarText.length > 2 ? 'scale-90' : ''}`}>
                         {lunarText || '-'}
                     </span>
                 </div>
@@ -993,12 +1000,12 @@ const SmartDisplay = () => {
                                                         </p>
                                                     )}
                                                     <p className="text-white font-mono text-sm mb-3 break-all">
-                                                        {deviceIP ? `http://${deviceIP}:${Capacitor.isNativePlatform() ? '8080' : (window.location.port || '80')}/config.html` : '正在获取IP地址...'}
+                                                        {deviceIP ? `http://${deviceIP}:3001` : '正在获取IP地址...'}
                                                     </p>
                                                     {deviceIP && (
                                                         <div className="bg-white p-2 rounded-lg w-32 mx-auto">
-                                                            <img 
-                                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`http://${deviceIP}:${Capacitor.isNativePlatform() ? '8080' : (window.location.port || '80')}/config.html`)}`}
+                                                            <img
+                                                                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`http://${deviceIP}:3001`)}`}
                                                                 alt="QR Code"
                                                                 className="w-full h-auto"
                                                             />

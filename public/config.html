@@ -176,17 +176,20 @@
     <script>
         let demoMode = false;
 
-        function loadConfig() {
-            const config = JSON.parse(localStorage.getItem('smart_screen_config') || '{}');
-            document.getElementById('ha_url').value = config.ha_url || '';
-            document.getElementById('ha_token').value = config.ha_token || '';
-            document.getElementById('weather_entity').value = config.weather_entity || 'weather.forecast_home';
-            document.getElementById('location_name').value = config.location_name || '北京市';
-            
-            const savedDemo = localStorage.getItem('demo_mode') === 'true';
-            demoMode = savedDemo;
-            document.getElementById('demo_toggle').classList.toggle('active', savedDemo);
-            document.getElementById('demo_state').value = localStorage.getItem('demo_state') || 'CLEAR_DAY';
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                document.getElementById('ha_url').value = config.ha_url || '';
+                document.getElementById('ha_token').value = config.ha_token || '';
+                document.getElementById('weather_entity').value = config.weather_entity || 'weather.forecast_home';
+                document.getElementById('location_name').value = config.location_name || '北京市';
+                demoMode = config.demo_mode || false;
+                document.getElementById('demo_toggle').classList.toggle('active', demoMode);
+                document.getElementById('demo_state').value = config.demo_state || 'CLEAR_DAY';
+            } catch (error) {
+                showStatus('❌ 加载配置失败', 'error');
+            }
         }
 
         function toggleDemo() {
@@ -194,26 +197,26 @@
             document.getElementById('demo_toggle').classList.toggle('active', demoMode);
         }
 
-        function saveConfig() {
+        async function saveConfig() {
             const config = {
                 ha_url: document.getElementById('ha_url').value,
                 ha_token: document.getElementById('ha_token').value,
                 weather_entity: document.getElementById('weather_entity').value,
-                location_name: document.getElementById('location_name').value
+                location_name: document.getElementById('location_name').value,
+                demo_mode: demoMode,
+                demo_state: document.getElementById('demo_state').value
             };
-            
-            localStorage.setItem('smart_screen_config', JSON.stringify(config));
-            localStorage.setItem('demo_mode', demoMode);
-            localStorage.setItem('demo_state', document.getElementById('demo_state').value);
-            
-            showStatus('✅ 配置已保存', 'success');
-            setTimeout(() => {
-                if (window.history.length > 1) {
-                    window.history.back();
-                } else {
-                    window.location.href = '/';
-                }
-            }, 1000);
+
+            try {
+                await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                showStatus('✅ 配置已保存', 'success');
+            } catch (error) {
+                showStatus('❌ 保存失败', 'error');
+            }
         }
 
         function quickSet(state) {

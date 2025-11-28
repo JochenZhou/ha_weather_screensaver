@@ -45,7 +45,7 @@ app.post('/api/config', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(join(__dirname, 'public', 'admin.html'));
+  res.sendFile(join(__dirname, 'public', 'config.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
