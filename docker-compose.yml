@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  smartscreen:
+    build: .
+    container_name: smartscreen-ui
+    ports:
+      - "8080:80"
+    restart: unless-stopped

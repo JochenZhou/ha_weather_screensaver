@@ -1,0 +1,8 @@
+{
+  "appId": "com.smartscreen.app",
+  "appName": "Smart Weather Display",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

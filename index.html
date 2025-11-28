@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Smart Weather Display</title>
+    <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+    <script nomodule>
+      document.getElementById('root').innerHTML = '<div style="color:white;padding:20px;text-align:center;">您的浏览器不支持此应用，请更新浏览器</div>';
+    </script>
+    <script>
+      window.addEventListener('error', function(e) {
+        console.error('Error:', e.error);
+      });
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(function(e) {
+          console.error('SW registration failed:', e);
+        });
+      }
+    </script>
+  </body>
+</html>
