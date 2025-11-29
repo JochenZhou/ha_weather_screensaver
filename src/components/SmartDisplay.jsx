@@ -111,6 +111,21 @@ const WeatherStyles = () => (
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     }
+
+    /* --- 节日氛围动画 --- */
+    @keyframes float-up {
+      0% { transform: translateY(100vh) scale(0.8); opacity: 0; }
+      10% { opacity: 0.8; }
+      90% { opacity: 0.8; }
+      100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+    }
+    
+    @keyframes float-heart {
+      0% { transform: translateY(100vh) scale(0.5) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.8; }
+      50% { transform: translateY(50vh) scale(1) rotate(10deg); }
+      100% { transform: translateY(-20vh) scale(0.8) rotate(-10deg); opacity: 0; }
+    }
   `}</style>
 );
 
@@ -247,7 +262,7 @@ const normalizeWeatherState = (haState) => {
 
 // =================================================================================
 // 1. 高级渐变背景 (Cinema Gradients) - 调暗版，适配白色文字
-const WeatherBackground = ({ weatherKey }) => {
+const WeatherBackground = ({ weatherKey, festival }) => {
     const getGradient = (key) => {
         switch (true) {
             case key === 'CLEAR_DAY':
@@ -521,6 +536,125 @@ const WeatherBackground = ({ weatherKey }) => {
         return null;
     };
 
+    // 8. 节日氛围系统 (新增 - 性能优化版)
+    // 使用 useMemo 预生成粒子数据，避免每帧重计算
+    const festivalParticles = useMemo(() => {
+        const lanterns = Array.from({ length: 8 }).map((_, i) => ({
+            id: i,
+            left: Math.random() * 80,
+            size: Math.random() * 25 + 20, // 稍微缩小
+            duration: Math.random() * 10 + 20,
+            delay: Math.random() * 10,
+            opacity: Math.random() * 0.3 + 0.6
+        }));
+
+        const hearts = Array.from({ length: 10 }).map((_, i) => ({
+            id: i,
+            left: Math.random() * 80,
+            size: Math.random() * 15 + 10,
+            duration: Math.random() * 8 + 12,
+            delay: Math.random() * 10,
+        }));
+
+        const sparkles = Array.from({ length: 15 }).map((_, i) => ({
+            id: i,
+            left: Math.random() * 80,
+            top: Math.random() * 40 + 60,
+            size: Math.random() * 3 + 1,
+            duration: Math.random() * 3 + 2
+        }));
+
+        return { lanterns, hearts, sparkles };
+    }, []);
+
+    const renderFestivalAtmosphere = (fest) => {
+        if (!fest) return null;
+
+        // 容器样式：限制在左下角，并添加边缘羽化
+        // 移除 overflow-hidden 以减少裁剪开销，如果不需要的话。这里保留以防粒子飞出。
+        const containerClass = "absolute bottom-0 left-0 w-[45%] h-[60%] z-20 pointer-events-none overflow-hidden";
+
+        // 优化 mask-image，使用更简单的渐变
+        const maskStyle = {
+            maskImage: 'radial-gradient(circle at bottom left, black 40%, transparent 100%)',
+            WebkitMaskImage: 'radial-gradient(circle at bottom left, black 40%, transparent 100%)'
+        };
+
+        // 春节/元宵/除夕/国庆 - 红灯笼/红光
+        if (['春节', '元宵', '除夕', '国庆'].some(k => fest.includes(k))) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    {/* 底部暖红光晕 - 静态背景 */}
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[60%] bg-gradient-to-tr from-red-900/40 via-red-800/10 to-transparent blur-[50px]"></div>
+
+                    {/* 漂浮灯笼 - 移除 expensive box-shadow */}
+                    {festivalParticles.lanterns.map(l => (
+                        <div
+                            key={`lantern-${l.id}`}
+                            className="absolute rounded-full bg-gradient-to-t from-orange-500 to-red-600 blur-[0.5px] will-change-transform"
+                            style={{
+                                left: `${l.left}%`,
+                                width: `${l.size}px`,
+                                height: `${l.size * 1.2}px`,
+                                opacity: l.opacity,
+                                animation: `float-up ${l.duration}s linear infinite`,
+                                animationDelay: `-${l.delay}s`
+                            }}
+                        />
+                    ))}
+                </div>
+            );
+        }
+
+        // 情人节/520 - 爱心
+        if (['情人', '520', '七夕'].some(k => fest.includes(k))) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-pink-900/30 via-pink-800/10 to-transparent blur-[50px]"></div>
+                    {festivalParticles.hearts.map(h => (
+                        <div
+                            key={`heart-${h.id}`}
+                            className="absolute text-pink-400/60 will-change-transform"
+                            style={{
+                                left: `${h.left}%`,
+                                fontSize: `${h.size}px`,
+                                animation: `float-heart ${h.duration}s linear infinite`,
+                                animationDelay: `-${h.delay}s`
+                            }}
+                        >
+                            ♥
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        // 圣诞/平安夜 - 金色/红色微光
+        if (['圣诞', '平安'].some(k => fest.includes(k))) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-red-900/20 via-yellow-900/10 to-transparent blur-[40px]"></div>
+                    {/* 底部金色光尘 */}
+                    {festivalParticles.sparkles.map((s, i) => (
+                        <div
+                            key={`gold-${s.id}`}
+                            className="absolute bg-yellow-200/40 rounded-full blur-[0.5px] will-change-transform"
+                            style={{
+                                left: `${s.left}%`,
+                                top: `${s.top}%`,
+                                width: `${s.size}px`,
+                                height: `${s.size}px`,
+                                animation: `twinkle ${s.duration}s infinite ease-in-out`
+                            }}
+                        />
+                    ))}
+                </div>
+            );
+        }
+
+        return null;
+    };
+
     return (
         <div className={`pro-gradient-layer w-full h-full ${getGradient(weatherKey)}`}>
             {renderCelestialBody(weatherKey)}
@@ -529,6 +663,7 @@ const WeatherBackground = ({ weatherKey }) => {
             {renderPrecipitation(weatherKey)}
             {renderLightning(weatherKey)}
             {renderFog(weatherKey)}
+            {renderFestivalAtmosphere(festival)}
         </div>
     );
 };
@@ -555,6 +690,7 @@ const SmartDisplay = () => {
     const [fetchError, setFetchError] = useState(null);
     const [demoMode, setDemoMode] = useState(() => localStorage.getItem('demo_mode') === 'true');
     const [demoState, setDemoState] = useState(() => localStorage.getItem('demo_state') || 'CLEAR_DAY');
+    const [demoFestival, setDemoFestival] = useState(() => localStorage.getItem('demo_festival') || '');
     const [serverUrl, setServerUrl] = useState(() => localStorage.getItem('config_server_url') || '');
     const [useRemoteConfig, setUseRemoteConfig] = useState(() => localStorage.getItem('use_remote_config') === 'true');
     const [deviceIP, setDeviceIP] = useState('');
@@ -585,9 +721,9 @@ const SmartDisplay = () => {
             console.log('Using IP:', hostname);
         } else {
             // 如果是 localhost，尝试通过 WebRTC 获取
-            const pc = new RTCPeerConnection({iceServers: [{urls: 'stun:stun.l.google.com:19302'}]});
+            const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
             pc.createDataChannel('');
-            
+
             pc.onicecandidate = (ice) => {
                 if (!ice || !ice.candidate || !ice.candidate.candidate) return;
                 const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
@@ -598,7 +734,7 @@ const SmartDisplay = () => {
                     pc.close();
                 }
             };
-            
+
             pc.createOffer().then(offer => pc.setLocalDescription(offer));
         }
     }, []);
@@ -647,7 +783,7 @@ const SmartDisplay = () => {
                     const data = await response.json();
                     const attrs = data.attributes;
                     let weatherState, mappedKey, weatherText;
-                    
+
                     if (attrs.skycon) {
                         // 彩云天气
                         weatherState = attrs.skycon;
@@ -662,7 +798,7 @@ const SmartDisplay = () => {
                         weatherState = data.state;
                         mappedKey = normalizeWeatherState(weatherState);
                     }
-                    
+
                     setWeather({
                         state: weatherState,
                         mappedKey: mappedKey,
@@ -712,6 +848,10 @@ const SmartDisplay = () => {
                         setDemoState(remoteConfig.demo_state);
                         localStorage.setItem('demo_state', remoteConfig.demo_state);
                     }
+                    if (remoteConfig.demo_festival !== undefined) {
+                        setDemoFestival(remoteConfig.demo_festival);
+                        localStorage.setItem('demo_festival', remoteConfig.demo_festival);
+                    }
                     setFetchError(null);
                 }
             } catch (error) {
@@ -728,8 +868,7 @@ const SmartDisplay = () => {
     const handleSaveConfig = () => {
         localStorage.setItem('smart_screen_config', JSON.stringify(editConfig));
         setConfig(editConfig);
-        localStorage.setItem('demo_mode', 'false');
-        setDemoMode(false);
+        localStorage.setItem('demo_mode', demoMode);
         setShowSettings(false);
     };
 
@@ -757,12 +896,50 @@ const SmartDisplay = () => {
     // 农历数据
     const getLunarData = (date) => {
         if (!Solar) {
-            return { dayStr: '加载中...', yearStr: '' };
+            return { dayStr: '加载中...', yearStr: '', festivalStr: '' };
         }
 
         const solar = Solar.fromYmd(date.getFullYear(), date.getMonth() + 1, date.getDate());
         const lunar = solar.getLunar();
         const jieQi = lunar.getJieQi();
+
+        // 获取节日信息
+        let festivals = [];
+
+        // 1. 二十四节气
+        if (jieQi) festivals.push(jieQi);
+
+        // 2. 农历节日 (如春节、中秋)
+        const lunarFestivals = lunar.getFestivals();
+        if (lunarFestivals && lunarFestivals.length > 0) {
+            festivals.push(...lunarFestivals);
+        }
+
+        // 3. 公历节日 (如元旦、国庆)
+        const solarFestivals = solar.getFestivals();
+        if (solarFestivals && solarFestivals.length > 0) {
+            festivals.push(...solarFestivals);
+        }
+
+        // 4. 其他流行节日 (如情人节、圣诞节) - 库中可能在 "OtherFestivals"
+        const solarOther = solar.getOtherFestivals();
+        if (solarOther && solarOther.length > 0) {
+            // 过滤掉一些不常用的，只保留主要的
+            const popular = ['情人节', '平安夜', '圣诞节', '父亲节', '母亲节', '万圣节'];
+            const found = solarOther.filter(f => popular.some(p => f.includes(p)));
+            festivals.push(...found);
+        }
+
+        // 5. 农历其他节日 (如除夕)
+        const lunarOther = lunar.getOtherFestivals();
+        if (lunarOther && lunarOther.length > 0) {
+            const popularLunar = ['除夕', '元宵']; // 元宵通常在 festivals 里，但检查一下
+            const found = lunarOther.filter(f => popularLunar.some(p => f.includes(p)));
+            festivals.push(...found);
+        }
+
+        // 去重并拼接
+        const festivalStr = [...new Set(festivals)].join(' · ');
 
         const yearGanZhi = lunar.getYearInGanZhi() + lunar.getYearShengXiao() + '年';
         const monthGanZhi = lunar.getMonthInGanZhi() + '月';
@@ -773,7 +950,8 @@ const SmartDisplay = () => {
             dayStr: `农历${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`,
             dayNum: lunar.getDay(),
             jieQi: jieQi,
-            yearStr: fullGanZhi
+            yearStr: fullGanZhi,
+            festivalStr: festivalStr
         };
     };
 
@@ -869,7 +1047,10 @@ const SmartDisplay = () => {
 
             {/* 背景层 - 铺满整个屏幕 */}
             <div className="absolute inset-0 z-0">
-                <WeatherBackground weatherKey={weather.mappedKey} />
+                <WeatherBackground
+                    weatherKey={weather.mappedKey}
+                    festival={(demoMode && demoFestival) ? demoFestival : lunarData.festivalStr}
+                />
             </div>
 
 
@@ -928,10 +1109,16 @@ const SmartDisplay = () => {
 
                             {/* Lunar Info - Elegant Typography */}
                             <div className="space-y-1 mb-6 drop-shadow-md border-l-2 border-white/30 pl-4">
-                                <div className="text-2xl font-light text-white tracking-[0.2em] min-h-[2rem] drop-shadow-md" style={{fontFamily: 'KaiTi, STKaiti, SimKai, serif'}}>
+                                {/* 节日/节气显示区域 */}
+                                {((demoMode && demoFestival) || lunarData.festivalStr) ? (
+                                    <div className="text-xl text-yellow-300 font-medium tracking-wider mb-1 drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
+                                        {(demoMode && demoFestival) ? demoFestival : lunarData.festivalStr}
+                                    </div>
+                                ) : null}
+                                <div className="text-2xl font-light text-white tracking-[0.2em] min-h-[2rem] drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
                                     {lunarData.dayStr}
                                 </div>
-                                <div className="text-sm text-white/70 tracking-widest uppercase min-h-[1.75rem] drop-shadow-md" style={{fontFamily: 'KaiTi, STKaiti, SimKai, serif'}}>
+                                <div className="text-sm text-white/70 tracking-widest uppercase min-h-[1.75rem] drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
                                     {lunarData.yearStr}
                                 </div>
                             </div>
@@ -990,7 +1177,10 @@ const SmartDisplay = () => {
                                             {demoMode && (
                                                 <select
                                                     value={demoState}
-                                                    onChange={(e) => setDemoState(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setDemoState(e.target.value);
+                                                        localStorage.setItem('demo_state', e.target.value);
+                                                    }}
                                                     className="bg-black/50 border border-white/20 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
                                                 >
                                                     <option value="CLEAR_DAY">☀️ 晴天</option>
@@ -1016,6 +1206,28 @@ const SmartDisplay = () => {
                                                     <option value="SLEET">🌨️ 雨夹雪</option>
                                                     <option value="WIND">💨 大风</option>
                                                     <option value="HAZE">🌫️ 雾霾</option>
+                                                </select>
+                                            )}
+                                            {demoMode && (
+                                                <select
+                                                    value={demoFestival}
+                                                    onChange={(e) => {
+                                                        setDemoFestival(e.target.value);
+                                                        localStorage.setItem('demo_festival', e.target.value);
+                                                    }}
+                                                    className="bg-black/50 border border-white/20 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                                                >
+                                                    <option value="">无节日</option>
+                                                    <option value="春节">🧨 春节</option>
+                                                    <option value="元宵节">🏮 元宵节</option>
+                                                    <option value="清明">🌿 清明</option>
+                                                    <option value="端午节">🐉 端午节</option>
+                                                    <option value="中秋节">🥮 中秋节</option>
+                                                    <option value="国庆节">🇨🇳 国庆节</option>
+                                                    <option value="圣诞节">🎄 圣诞节</option>
+                                                    <option value="平安夜">🍎 平安夜</option>
+                                                    <option value="情人节">🌹 情人节</option>
+                                                    <option value="除夕">🧧 除夕</option>
                                                 </select>
                                             )}
                                             <button
@@ -1052,7 +1264,7 @@ const SmartDisplay = () => {
                                                 <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
                                             </label>
                                         </div>
-                                        
+
                                         {useRemoteConfig && (
                                             <div className="space-y-3">
                                                 <div className="bg-white/5 rounded-xl p-4 border border-white/10">
