@@ -146,6 +146,48 @@ const CONDITION_CN_MAP = {
     'SNOW': '雪',
 };
 
+// 和风天气图标代码映射到动画
+const QWEATHER_ICON_MAP = {
+    // 晴天
+    '100': 'CLEAR_DAY', '150': 'CLEAR_NIGHT',
+    // 多云/少云/晴间多云
+    '101': 'PARTLY_CLOUDY_DAY', '102': 'PARTLY_CLOUDY_DAY', '103': 'PARTLY_CLOUDY_DAY',
+    '151': 'PARTLY_CLOUDY_NIGHT', '152': 'PARTLY_CLOUDY_NIGHT', '153': 'PARTLY_CLOUDY_NIGHT',
+    // 阴
+    '104': 'CLOUDY',
+    // 阵雨
+    '300': 'LIGHT_RAIN', '350': 'LIGHT_RAIN',
+    '301': 'MODERATE_RAIN', '351': 'MODERATE_RAIN',
+    // 雷阵雨
+    '302': 'THUNDER_SHOWER', '303': 'THUNDER_SHOWER', '304': 'HAIL',
+    // 小雨
+    '305': 'LIGHT_RAIN', '309': 'LIGHT_RAIN', '314': 'LIGHT_RAIN',
+    // 中雨
+    '306': 'MODERATE_RAIN', '315': 'MODERATE_RAIN',
+    // 大雨
+    '307': 'HEAVY_RAIN', '316': 'HEAVY_RAIN',
+    // 暴雨
+    '308': 'STORM_RAIN', '310': 'STORM_RAIN', '311': 'STORM_RAIN', '312': 'STORM_RAIN',
+    '317': 'STORM_RAIN', '318': 'STORM_RAIN',
+    // 冻雨/雨
+    '313': 'SLEET', '399': 'RAIN',
+    // 雪
+    '400': 'LIGHT_SNOW', '408': 'LIGHT_SNOW',
+    '401': 'MODERATE_SNOW', '409': 'MODERATE_SNOW',
+    '402': 'HEAVY_SNOW', '410': 'HEAVY_SNOW',
+    '403': 'STORM_SNOW',
+    '404': 'SLEET', '405': 'SLEET', '406': 'SLEET', '456': 'SLEET',
+    '407': 'LIGHT_SNOW', '457': 'LIGHT_SNOW',
+    '499': 'SNOW',
+    // 雾/霾
+    '500': 'LIGHT_HAZE', '501': 'FOG', '509': 'HEAVY_HAZE', '510': 'HEAVY_HAZE', '514': 'HEAVY_HAZE', '515': 'HEAVY_HAZE',
+    '502': 'HAZE', '511': 'MODERATE_HAZE', '512': 'HEAVY_HAZE', '513': 'HEAVY_HAZE',
+    // 沙尘
+    '503': 'SAND', '504': 'DUST', '507': 'SAND', '508': 'SAND',
+    // 其他
+    '900': 'CLEAR_DAY', '901': 'CLEAR_DAY', '999': 'CLOUDY'
+};
+
 // 状态标准化
 // 状态标准化 - 保留强度前缀
 const normalizeWeatherState = (haState) => {
@@ -603,14 +645,31 @@ const SmartDisplay = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    const skycon = data.attributes.skycon;
-                    const haState = skycon || data.state;
+                    const attrs = data.attributes;
+                    let weatherState, mappedKey, weatherText;
+                    
+                    if (attrs.skycon) {
+                        // 彩云天气
+                        weatherState = attrs.skycon;
+                        mappedKey = normalizeWeatherState(weatherState);
+                    } else if (attrs.condition_cn && attrs.qweather_icon) {
+                        // 和风天气
+                        weatherState = attrs.condition_cn;
+                        mappedKey = QWEATHER_ICON_MAP[String(attrs.qweather_icon)] || normalizeWeatherState(data.state);
+                        weatherText = attrs.condition_cn;
+                    } else {
+                        // 默认
+                        weatherState = data.state;
+                        mappedKey = normalizeWeatherState(weatherState);
+                    }
+                    
                     setWeather({
-                        state: haState,
-                        mappedKey: normalizeWeatherState(haState),
-                        temperature: data.attributes.temperature,
-                        attributes: data.attributes,
-                        friendlyName: data.attributes.friendly_name || ""
+                        state: weatherState,
+                        mappedKey: mappedKey,
+                        temperature: attrs.temperature,
+                        attributes: attrs,
+                        friendlyName: attrs.friendly_name || "",
+                        weatherText: weatherText
                     });
                     setFetchError(null);
                 } else {
@@ -778,7 +837,11 @@ const SmartDisplay = () => {
     };
 
     const getWeatherText = (key) => {
-        // 优先使用 skycon 属性
+        // 和风天气直接使用 condition_cn
+        if (weather.weatherText) {
+            return weather.weatherText;
+        }
+        // 彩云天气使用 skycon 映射
         if (weather.attributes.skycon) {
             return CONDITION_CN_MAP[weather.attributes.skycon] || CONDITION_CN_MAP[key] || "晴";
         }
