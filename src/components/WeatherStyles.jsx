@@ -1,7 +1,7 @@
 import React from 'react';
 
 const WeatherStyles = () => (
-    <style>{`
+  <style>{`
     @keyframes breathe {
       0%, 100% { transform: scale(1); opacity: 0.6; }
       50% { transform: scale(1.1); opacity: 0.8; }
@@ -71,6 +71,28 @@ const WeatherStyles = () => (
       10% { opacity: 0.8; }
       50% { transform: translateY(50vh) scale(1) rotate(10deg); }
       100% { transform: translateY(-20vh) scale(0.8) rotate(-10deg); opacity: 0; }
+    }
+    @keyframes sway {
+      0%, 100% { transform: rotate(-5deg); }
+      50% { transform: rotate(5deg); }
+    }
+    @keyframes float-slow {
+      0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+      20% { opacity: 0.8; }
+      80% { opacity: 0.8; }
+      100% { transform: translateY(-20vh) translateX(20px); opacity: 0; }
+    }
+    @keyframes balloon-rise {
+      0% { transform: translateY(100vh) scale(0.8); opacity: 0; }
+      10% { opacity: 0.9; }
+      90% { opacity: 0.9; }
+      100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+    }
+    @keyframes float-ghost {
+      0% { transform: translateY(100vh) translateX(-15px) scale(0.8); opacity: 0; }
+      20% { opacity: 0.7; }
+      50% { transform: translateY(50vh) translateX(15px) scale(1); }
+      100% { transform: translateY(-20vh) translateX(-15px) scale(0.9); opacity: 0; }
     }
     .pro-gradient-layer {
       position: absolute;

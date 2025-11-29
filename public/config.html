@@ -1,176 +1,338 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Smart Screen 配置</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        :root {
+            --system-bg: #f2f2f7;
+            --secondary-system-bg: #ffffff;
+            --grouped-bg: #ffffff;
+            --separator-color: #c6c6c8;
+            --blue: #007aff;
+            --green: #34c759;
+            --red: #ff3b30;
+            --text-primary: #000000;
+            --text-secondary: #8e8e93;
+            --text-placeholder: #3c3c434d;
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--system-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px 16px;
+            padding-bottom: 100px;
+            /* Space for bottom button */
+        }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
-        .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
-        .section { margin-bottom: 25px; }
-        .section h2 { color: #555; font-size: 18px; margin-bottom: 15px; }
-        label { display: block; color: #666; font-size: 13px; margin-bottom: 5px; font-weight: 500; }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
+
+        h1 {
+            font-size: 34px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            letter-spacing: 0.3px;
+        }
+
+        .section-title {
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            margin-top: 24px;
+            padding-left: 16px;
+            font-weight: 400;
+        }
+
+        .inset-group {
+            background-color: var(--grouped-bg);
             border-radius: 10px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            overflow: hidden;
         }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .toggle-container {
+
+        .list-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        .toggle {
+            justify-content: space-between;
+            padding: 12px 16px;
+            min-height: 44px;
             position: relative;
-            width: 50px;
-            height: 26px;
-            background: #ccc;
-            border-radius: 13px;
-            cursor: pointer;
-            transition: background 0.3s;
         }
-        .toggle.active { background: #4CAF50; }
-        .toggle::after {
+
+        .list-item:not(:last-child)::after {
             content: '';
             position: absolute;
-            width: 22px;
-            height: 22px;
-            background: white;
-            border-radius: 50%;
+            bottom: 0;
+            left: 16px;
+            right: 0;
+            height: 0.5px;
+            background-color: var(--separator-color);
+        }
+
+        .list-item label {
+            font-size: 17px;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+
+        .input-wrapper {
+            flex-grow: 1;
+            margin-left: 16px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select {
+            background: transparent;
+            border: none;
+            color: var(--blue);
+            font-size: 17px;
+            text-align: right;
+            width: 100%;
+            outline: none;
+            font-family: inherit;
+        }
+
+        input::placeholder {
+            color: var(--text-placeholder);
+        }
+
+        select {
+            appearance: none;
+            direction: rtl;
+        }
+
+        /* iOS Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 51px;
+            height: 31px;
+            background-color: #e9e9ea;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch.active {
+            background-color: var(--green);
+        }
+
+        .toggle-knob {
+            position: absolute;
             top: 2px;
             left: 2px;
-            transition: left 0.3s;
+            width: 27px;
+            height: 27px;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
         }
-        .toggle.active::after { left: 26px; }
-        .btn {
-            width: 100%;
-            padding: 15px;
+
+        .toggle-switch.active .toggle-knob {
+            transform: translateX(20px);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 568px;
+            background-color: var(--blue);
+            color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 17px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+            transition: transform 0.1s, opacity 0.2s;
+            z-index: 100;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+        .btn-primary:active {
+            transform: translateX(-50%) scale(0.98);
+            opacity: 0.9;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10px 16px;
+        }
+
+        .btn-quick {
+            background-color: #ffffff;
+            color: var(--text-primary);
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-quick:active {
+            background-color: #f2f2f7;
+        }
+
+        /* Status Toast */
+        .status-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            color: black;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .status-toast.error {
+            background: rgba(255, 59, 48, 0.9);
             color: white;
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .quick-btns {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .btn-quick {
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .status {
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        .status.success { background: #d4edda; color: #155724; }
-        .status.error { background: #f8d7da; color: #721c24; }
-        .hidden { display: none; }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>🖥️ Smart Screen</h1>
-        <p class="subtitle">配置管理</p>
-        
-        <div id="status" class="status hidden"></div>
+        <h1>设置</h1>
 
-        <div class="section">
-            <h2>🏠 Home Assistant</h2>
-            <div style="margin-bottom: 15px;">
-                <label>HA URL</label>
-                <input type="text" id="ha_url" placeholder="http://192.168.1.100:8123">
+        <div id="status" class="status-toast"></div>
+
+        <div class="section-title">Home Assistant 连接</div>
+        <div class="inset-group">
+            <div class="list-item">
+                <label>服务器地址</label>
+                <div class="input-wrapper">
+                    <input type="text" id="ha_url" placeholder="http://192.168.1.x:8123">
+                </div>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label>Access Token</label>
-                <input type="password" id="ha_token" placeholder="Long-lived access token">
+            <div class="list-item">
+                <label>访问令牌</label>
+                <div class="input-wrapper">
+                    <input type="password" id="ha_token" placeholder="Long-lived Access Token">
+                </div>
             </div>
-            <div style="margin-bottom: 15px;">
-                <label>天气实体 ID</label>
-                <input type="text" id="weather_entity" placeholder="weather.forecast_home">
+            <div class="list-item">
+                <label>天气实体</label>
+                <div class="input-wrapper">
+                    <input type="text" id="weather_entity" placeholder="weather.home">
+                </div>
             </div>
-            <div>
+            <div class="list-item">
                 <label>位置名称</label>
-                <input type="text" id="location_name" placeholder="北京市">
+                <div class="input-wrapper">
+                    <input type="text" id="location_name" placeholder="例如：客厅">
+                </div>
             </div>
         </div>
 
-        <div class="section">
-            <h2>🎬 演示模式</h2>
-            <div class="toggle-container">
-                <span style="font-weight: 500;">启用演示模式</span>
-                <div class="toggle" id="demo_toggle" onclick="toggleDemo()"></div>
+        <div class="section-title">演示模式</div>
+        <div class="inset-group">
+            <div class="list-item">
+                <label>启用演示</label>
+                <div class="toggle-switch" id="demo_toggle" onclick="toggleDemo()">
+                    <div class="toggle-knob"></div>
+                </div>
             </div>
-            <div>
+            <div class="list-item">
                 <label>天气状态</label>
-                <select id="demo_state">
-                    <option value="CLEAR_DAY">☀️ 晴天</option>
-                    <option value="CLEAR_NIGHT">🌙 晴夜</option>
-                    <option value="PARTLY_CLOUDY_DAY">🌤️ 多云(日)</option>
-                    <option value="CLOUDY">☁️ 阴天</option>
-                    <option value="LIGHT_RAIN">🌦️ 小雨</option>
-                    <option value="MODERATE_RAIN">🌧️ 中雨</option>
-                    <option value="HEAVY_RAIN">🌧️ 大雨</option>
-                    <option value="STORM_RAIN">⛈️ 暴雨</option>
-                    <option value="LIGHT_SNOW">🌨️ 小雪</option>
-                    <option value="HEAVY_SNOW">❄️ 大雪</option>
-                    <option value="THUNDER_SHOWER">⛈️ 雷阵雨</option>
-                    <option value="HAIL">🧊 冰雹</option>
-                    <option value="WIND">💨 大风</option>
-                    <option value="FOG">🌫️ 雾</option>
-                </select>
+                <div class="input-wrapper">
+                    <select id="demo_state">
+                        <option value="CLEAR_DAY">☀️ 晴天</option>
+                        <option value="CLEAR_NIGHT">🌙 晴夜</option>
+                        <option value="PARTLY_CLOUDY_DAY">🌤️ 多云(日)</option>
+                        <option value="CLOUDY">☁️ 阴天</option>
+                        <option value="LIGHT_RAIN">🌦️ 小雨</option>
+                        <option value="MODERATE_RAIN">🌧️ 中雨</option>
+                        <option value="HEAVY_RAIN">🌧️ 大雨</option>
+                        <option value="STORM_RAIN">⛈️ 暴雨</option>
+                        <option value="LIGHT_SNOW">🌨️ 小雪</option>
+                        <option value="HEAVY_SNOW">❄️ 大雪</option>
+                        <option value="THUNDER_SHOWER">⛈️ 雷阵雨</option>
+                        <option value="HAIL">🧊 冰雹</option>
+                        <option value="WIND">💨 大风</option>
+                        <option value="FOG">🌫️ 雾</option>
+                    </select>
+                </div>
             </div>
-            <div class="quick-btns">
-                <button class="btn-quick" style="background: #FFF3CD;" onclick="quickSet('CLEAR_DAY')">☀️ 晴天</button>
-                <button class="btn-quick" style="background: #D1ECF1;" onclick="quickSet('HEAVY_RAIN')">🌧️ 大雨</button>
-                <button class="btn-quick" style="background: #E2E3E5;" onclick="quickSet('HEAVY_SNOW')">❄️ 大雪</button>
-                <button class="btn-quick" style="background: #D6D8DB;" onclick="quickSet('THUNDER_SHOWER')">⛈️ 雷雨</button>
+            <div class="list-item">
+                <label>节日氛围</label>
+                <div class="input-wrapper">
+                    <select id="demo_festival">
+                        <option value="">无节日</option>
+                        <option value="春节">🧨 春节</option>
+                        <option value="元宵节">🏮 元宵节</option>
+                        <option value="清明">🌿 清明</option>
+                        <option value="端午节">🐉 端午节</option>
+                        <option value="中秋节">🥮 中秋节</option>
+                        <option value="国庆节">🇨🇳 国庆节</option>
+                        <option value="圣诞节">🎄 圣诞节</option>
+                        <option value="平安夜">🍎 平安夜</option>
+                        <option value="情人节">🌹 情人节</option>
+                        <option value="除夕">🧧 除夕</option>
+                        <option value="元旦">🎉 元旦</option>
+                        <option value="腊八">🥣 腊八</option>
+                        <option value="重阳">🏔️ 重阳</option>
+                        <option value="母亲节">👩 母亲节</option>
+                        <option value="父亲节">👨 父亲节</option>
+                        <option value="儿童节">🎈 儿童节</option>
+                        <option value="劳动节">🛠️ 劳动节</option>
+                        <option value="万圣节">🎃 万圣节</option>
+                        <option value="520">💖 520</option>
+                        <option value="七夕">💑 七夕</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <button class="btn btn-primary" onclick="saveConfig()">💾 保存配置</button>
+        <div class="section-title">快速切换</div>
+        <div class="quick-actions">
+            <button class="btn-quick" onclick="quickSet('CLEAR_DAY')">☀️ 晴天</button>
+            <button class="btn-quick" onclick="quickSet('HEAVY_RAIN')">🌧️ 大雨</button>
+            <button class="btn-quick" onclick="quickSet('HEAVY_SNOW')">❄️ 大雪</button>
+            <button class="btn-quick" onclick="quickSet('THUNDER_SHOWER')">⛈️ 雷雨</button>
+        </div>
+
+        <button class="btn-primary" onclick="saveConfig()">保存配置</button>
     </div>
 
     <script>
@@ -187,6 +349,7 @@
                 demoMode = config.demo_mode || false;
                 document.getElementById('demo_toggle').classList.toggle('active', demoMode);
                 document.getElementById('demo_state').value = config.demo_state || 'CLEAR_DAY';
+                document.getElementById('demo_festival').value = config.demo_festival || '';
             } catch (error) {
                 showStatus('❌ 加载配置失败', 'error');
             }
@@ -204,7 +367,8 @@
                 weather_entity: document.getElementById('weather_entity').value,
                 location_name: document.getElementById('location_name').value,
                 demo_mode: demoMode,
-                demo_state: document.getElementById('demo_state').value
+                demo_state: document.getElementById('demo_state').value,
+                demo_festival: document.getElementById('demo_festival').value
             };
 
             try {
@@ -229,11 +393,12 @@
         function showStatus(message, type) {
             const status = document.getElementById('status');
             status.textContent = message;
-            status.className = 'status ' + type;
-            setTimeout(() => status.classList.add('hidden'), 3000);
+            status.className = 'status-toast show ' + (type === 'error' ? 'error' : '');
+            setTimeout(() => status.classList.remove('show'), 3000);
         }
 
         loadConfig();
     </script>
 </body>
+
 </html>

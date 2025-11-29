@@ -60,8 +60,10 @@ const WeatherBackground = ({ weatherKey, festival }) => {
             <div className="particle-container z-0">
                 {stars.map((star) => (
                     <div key={`star-${star.id}`} className="absolute rounded-full bg-white shadow-[0_0_2px_rgba(255,255,255,0.8)]"
-                        style={{ top: star.top, left: star.left, width: `${star.size}px`, height: `${star.size}px`,
-                            animation: `twinkle ${star.duration}s infinite ease-in-out ${star.delay}s` }} />
+                        style={{
+                            top: star.top, left: star.left, width: `${star.size}px`, height: `${star.size}px`,
+                            animation: `twinkle ${star.duration}s infinite ease-in-out ${star.delay}s`
+                        }} />
                 ))}
                 <div className="absolute top-[20%] right-[-10%] w-[150px] h-[1px] bg-gradient-to-r from-transparent via-white to-transparent animate-[meteor_12s_infinite_ease-in] opacity-0" />
             </div>
@@ -119,13 +121,17 @@ const WeatherBackground = ({ weatherKey, festival }) => {
                     <div key="rain" className="particle-container z-20">
                         {rainParticles.far.slice(0, rainCount).map((p) => (
                             <div key={`rain-far-${p.id}`} className={`absolute will-change-transform ${key === 'HAIL' ? 'bg-white/90 rounded-full' : 'bg-white/10'}`}
-                                style={{ width: key === 'HAIL' ? '5px' : '1px', height: key === 'HAIL' ? '5px' : '30px', left: `${p.left}%`, top: `${p.top}%`,
-                                    animation: `rain-drop-far ${p.duration * rainDuration}s linear infinite`, transform: `rotate(${rainAngle}deg)` }} />
+                                style={{
+                                    width: key === 'HAIL' ? '5px' : '1px', height: key === 'HAIL' ? '5px' : '30px', left: `${p.left}%`, top: `${p.top}%`,
+                                    animation: `rain-drop-far ${p.duration * rainDuration}s linear infinite`, transform: `rotate(${rainAngle}deg)`
+                                }} />
                         ))}
                         {rainParticles.near.slice(0, Math.floor(rainCount / 2)).map((p) => (
                             <div key={`rain-near-${p.id}`} className={`absolute will-change-transform ${key === 'HAIL' ? 'bg-white/95 rounded-full' : 'bg-white/20'}`}
-                                style={{ width: key === 'HAIL' ? '7px' : '2px', height: key === 'HAIL' ? '7px' : '50px', left: `${p.left}%`, top: `${p.top}%`,
-                                    animation: `rain-drop-near ${p.duration * rainDuration}s linear infinite`, transform: `rotate(${rainAngle + 5}deg)` }} />
+                                style={{
+                                    width: key === 'HAIL' ? '7px' : '2px', height: key === 'HAIL' ? '7px' : '50px', left: `${p.left}%`, top: `${p.top}%`,
+                                    animation: `rain-drop-near ${p.duration * rainDuration}s linear infinite`, transform: `rotate(${rainAngle + 5}deg)`
+                                }} />
                         ))}
                     </div>
                 );
@@ -135,8 +141,10 @@ const WeatherBackground = ({ weatherKey, festival }) => {
                     <div key="snow" className="particle-container z-20">
                         {snowParticles.slice(0, snowCount).map((p) => (
                             <div key={`snow-${p.id}`} className="absolute bg-white/80 rounded-full will-change-transform"
-                                style={{ width: `${p.size}px`, height: `${p.size}px`, left: `${p.left}%`, filter: `blur(${p.blur}px)`,
-                                    opacity: p.opacity, '--sway': `${p.sway}px`, animation: `snow-fall ${p.duration}s linear infinite`, animationDelay: `${p.delay}s` }} />
+                                style={{
+                                    width: `${p.size}px`, height: `${p.size}px`, left: `${p.left}%`, filter: `blur(${p.blur}px)`,
+                                    opacity: p.opacity, '--sway': `${p.sway}px`, animation: `snow-fall ${p.duration}s linear infinite`, animationDelay: `${p.delay}s`
+                                }} />
                         ))}
                     </div>
                 );
@@ -164,9 +172,35 @@ const WeatherBackground = ({ weatherKey, festival }) => {
     };
 
     const festivalParticles = useMemo(() => ({
-        lanterns: Array.from({ length: 8 }).map((_, i) => ({ id: i, left: Math.random() * 80, size: Math.random() * 25 + 20, duration: Math.random() * 10 + 20, delay: Math.random() * 10, opacity: Math.random() * 0.3 + 0.6 })),
-        hearts: Array.from({ length: 10 }).map((_, i) => ({ id: i, left: Math.random() * 80, size: Math.random() * 15 + 10, duration: Math.random() * 8 + 12, delay: Math.random() * 10 })),
-        sparkles: Array.from({ length: 15 }).map((_, i) => ({ id: i, left: Math.random() * 80, top: Math.random() * 40 + 60, size: Math.random() * 3 + 1, duration: Math.random() * 3 + 2 }))
+        lanterns: Array.from({ length: 8 }).map((_, i) => ({
+            id: i, left: Math.random() * 80, size: Math.random() * 25 + 20, duration: Math.random() * 10 + 20, delay: Math.random() * 10, opacity: Math.random() * 0.3 + 0.6,
+            icon: ['🏮', '🧧', '🧨'][Math.floor(Math.random() * 3)]
+        })),
+        hearts: Array.from({ length: 10 }).map((_, i) => ({
+            id: i, left: Math.random() * 80, size: Math.random() * 15 + 15, duration: Math.random() * 8 + 12, delay: Math.random() * 10,
+            icon: ['❤️', '🌹', '💐'][Math.floor(Math.random() * 3)]
+        })),
+        christmas: Array.from({ length: 15 }).map((_, i) => ({
+            id: i, left: Math.random() * 80, top: Math.random() * 40 + 60, size: Math.random() * 20 + 10, duration: Math.random() * 5 + 5,
+            icon: ['🎄', '🌟', '❄️', '🎁'][Math.floor(Math.random() * 4)]
+        })),
+        willowLeaves: Array.from({ length: 12 }).map((_, i) => ({ id: i, left: Math.random() * 80, delay: Math.random() * 5, duration: Math.random() * 4 + 4, size: Math.random() * 10 + 5 })),
+        dragonBoat: Array.from({ length: 10 }).map((_, i) => ({
+            id: i, left: Math.random() * 80, top: Math.random() * 80, rotate: Math.random() * 360, duration: Math.random() * 10 + 10,
+            icon: ['🎋', '🍙', '🐉'][Math.floor(Math.random() * 3)]
+        })),
+        midAutumn: Array.from({ length: 8 }).map((_, i) => ({
+            id: i, left: Math.random() * 80, size: Math.random() * 20 + 15, duration: Math.random() * 15 + 20, delay: Math.random() * 10,
+            icon: ['🥮', '🐇', '🏮'][Math.floor(Math.random() * 3)]
+        })),
+        balloons: Array.from({ length: 10 }).map((_, i) => ({
+            id: i, left: Math.random() * 80, size: Math.random() * 20 + 20, duration: Math.random() * 8 + 10, delay: Math.random() * 5,
+            icon: ['🎈', '🍭', '🧸'][Math.floor(Math.random() * 3)]
+        })),
+        halloween: Array.from({ length: 8 }).map((_, i) => ({
+            id: i, left: Math.random() * 80, size: Math.random() * 20 + 20, duration: Math.random() * 10 + 15, delay: Math.random() * 10,
+            icon: ['🎃', '👻', '🕸️'][Math.floor(Math.random() * 3)]
+        }))
     }), []);
 
     const renderFestivalAtmosphere = (fest) => {
@@ -174,39 +208,165 @@ const WeatherBackground = ({ weatherKey, festival }) => {
         const containerClass = "absolute bottom-0 left-0 w-[45%] h-[60%] z-20 pointer-events-none overflow-hidden";
         const maskStyle = { maskImage: 'radial-gradient(circle at bottom left, black 40%, transparent 100%)', WebkitMaskImage: 'radial-gradient(circle at bottom left, black 40%, transparent 100%)' };
 
-        if (['春节', '元宵', '除夕', '国庆'].some(k => fest.includes(k))) {
+        // 春节/元宵/除夕/国庆/元旦/腊八/重阳 - 红灯笼/红包/鞭炮
+        if (['春节', '元宵', '除夕', '国庆', '元旦', '腊八', '重阳'].some(k => fest.includes(k))) {
             return (
                 <div className={containerClass} style={maskStyle}>
                     <div className="absolute bottom-0 left-0 w-[80%] h-[60%] bg-gradient-to-tr from-red-900/40 via-red-800/10 to-transparent blur-[50px]"></div>
                     {festivalParticles.lanterns.map(l => (
-                        <div key={`lantern-${l.id}`} className="absolute rounded-full bg-gradient-to-t from-orange-500 to-red-600 blur-[0.5px] will-change-transform"
-                            style={{ left: `${l.left}%`, width: `${l.size}px`, height: `${l.size * 1.2}px`, opacity: l.opacity, animation: `float-up ${l.duration}s linear infinite`, animationDelay: `-${l.delay}s` }} />
+                        <div key={`lantern-${l.id}`} className="absolute will-change-transform flex items-center justify-center"
+                            style={{
+                                left: `${l.left}%`, fontSize: `${l.size}px`, opacity: l.opacity,
+                                animation: `float-up ${l.duration}s linear infinite`, animationDelay: `-${l.delay}s`,
+                                filter: 'drop-shadow(0 0 5px rgba(239, 68, 68, 0.5))'
+                            }}>
+                            {l.icon}
+                        </div>
                     ))}
                 </div>
             );
         }
-        if (['情人', '520', '七夕'].some(k => fest.includes(k))) {
+        // 情人节/520/七夕/母亲节 - 粉色爱心/玫瑰
+        if (['情人', '520', '七夕', '母亲'].some(k => fest.includes(k))) {
             return (
                 <div className={containerClass} style={maskStyle}>
                     <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-pink-900/30 via-pink-800/10 to-transparent blur-[50px]"></div>
                     {festivalParticles.hearts.map(h => (
-                        <div key={`heart-${h.id}`} className="absolute text-pink-400/60 will-change-transform"
-                            style={{ left: `${h.left}%`, fontSize: `${h.size}px`, animation: `float-heart ${h.duration}s linear infinite`, animationDelay: `-${h.delay}s` }}>♥</div>
+                        <div key={`heart-${h.id}`} className="absolute will-change-transform"
+                            style={{
+                                left: `${h.left}%`, fontSize: `${h.size}px`,
+                                animation: `float-heart ${h.duration}s linear infinite`, animationDelay: `-${h.delay}s`,
+                                filter: 'drop-shadow(0 0 5px rgba(244, 114, 182, 0.5))'
+                            }}>
+                            {h.icon}
+                        </div>
                     ))}
                 </div>
             );
         }
+        // 父亲节 - 蓝色爱心 (保持蓝色主题，图标可以是通用的)
+        if (fest.includes('父亲')) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-blue-900/30 via-blue-800/10 to-transparent blur-[50px]"></div>
+                    {festivalParticles.hearts.map(h => (
+                        <div key={`heart-blue-${h.id}`} className="absolute will-change-transform"
+                            style={{
+                                left: `${h.left}%`, fontSize: `${h.size}px`,
+                                animation: `float-heart ${h.duration}s linear infinite`, animationDelay: `-${h.delay}s`,
+                                filter: 'hue-rotate(200deg) drop-shadow(0 0 5px rgba(59, 130, 246, 0.5))' // 简单变色处理
+                            }}>
+                            {h.icon === '🌹' ? '👔' : '💙'}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        // 圣诞/平安夜 - 圣诞树/星星/礼物
         if (['圣诞', '平安'].some(k => fest.includes(k))) {
             return (
                 <div className={containerClass} style={maskStyle}>
-                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-red-900/20 via-yellow-900/10 to-transparent blur-[40px]"></div>
-                    {festivalParticles.sparkles.map(s => (
-                        <div key={`gold-${s.id}`} className="absolute bg-yellow-200/40 rounded-full blur-[0.5px] will-change-transform"
-                            style={{ left: `${s.left}%`, top: `${s.top}%`, width: `${s.size}px`, height: `${s.size}px`, animation: `twinkle ${s.duration}s infinite ease-in-out` }} />
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-red-900/20 via-green-900/10 to-transparent blur-[40px]"></div>
+                    {festivalParticles.christmas.map(s => (
+                        <div key={`xmas-${s.id}`} className="absolute will-change-transform"
+                            style={{
+                                left: `${s.left}%`, top: `${s.top}%`, fontSize: `${s.size}px`,
+                                animation: `twinkle ${s.duration}s infinite ease-in-out`,
+                                filter: 'drop-shadow(0 0 5px rgba(253, 224, 71, 0.5))'
+                            }}>
+                            {s.icon}
+                        </div>
                     ))}
                 </div>
             );
         }
+        // 清明 - 柳枝/雨丝 (保持原有，比较有意境)
+        if (fest.includes('清明')) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-emerald-900/30 via-emerald-800/10 to-transparent blur-[50px]"></div>
+                    {/* 模拟柳条 */}
+                    <div className="absolute top-10 left-10 w-[2px] h-[200px] bg-emerald-800/40 origin-top animate-[sway_4s_ease-in-out_infinite]"></div>
+                    <div className="absolute top-5 left-20 w-[2px] h-[150px] bg-emerald-800/30 origin-top animate-[sway_5s_ease-in-out_infinite_1s]"></div>
+                    {/* 飘落柳叶 */}
+                    {festivalParticles.willowLeaves.map(l => (
+                        <div key={`leaf-${l.id}`} className="absolute bg-emerald-500/60 rounded-full will-change-transform"
+                            style={{ left: `${l.left}%`, width: `${l.size}px`, height: `${l.size / 2}px`, animation: `rain-drop-far ${l.duration}s linear infinite`, animationDelay: `-${l.delay}s` }} />
+                    ))}
+                </div>
+            );
+        }
+        // 端午 - 竹子/粽子/龙
+        if (fest.includes('端午')) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-green-900/30 via-green-800/10 to-transparent blur-[50px]"></div>
+                    {festivalParticles.dragonBoat.map(l => (
+                        <div key={`dragon-${l.id}`} className="absolute will-change-transform"
+                            style={{
+                                left: `${l.left}%`, top: `${l.top}%`, fontSize: '20px',
+                                animation: `float-cloud-slow ${l.duration}s infinite ease-in-out`
+                            }}>
+                            {l.icon}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        // 中秋 - 月饼/兔子/灯笼
+        if (fest.includes('中秋')) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-amber-900/40 via-orange-800/10 to-transparent blur-[50px]"></div>
+                    {festivalParticles.midAutumn.map(l => (
+                        <div key={`midautumn-${l.id}`} className="absolute will-change-transform"
+                            style={{
+                                left: `${l.left}%`, fontSize: `${l.size}px`, opacity: 0.9,
+                                animation: `float-slow ${l.duration}s linear infinite`, animationDelay: `-${l.delay}s`,
+                                filter: 'drop-shadow(0 0 8px rgba(251, 191, 36, 0.4))'
+                            }}>
+                            {l.icon}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        // 儿童节/劳动节 - 气球/糖果
+        if (['儿童', '六一', '劳动', '五一'].some(k => fest.includes(k))) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-blue-900/20 via-pink-800/10 to-transparent blur-[50px]"></div>
+                    {festivalParticles.balloons.map(b => (
+                        <div key={`balloon-${b.id}`} className="absolute will-change-transform"
+                            style={{
+                                left: `${b.left}%`, fontSize: `${b.size}px`, opacity: 0.8,
+                                animation: `balloon-rise ${b.duration}s linear infinite`, animationDelay: `-${b.delay}s`
+                            }}>
+                            {b.icon}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+        // 万圣节 - 幽灵/南瓜/网
+        if (fest.includes('万圣')) {
+            return (
+                <div className={containerClass} style={maskStyle}>
+                    <div className="absolute bottom-0 left-0 w-[80%] h-[50%] bg-gradient-to-tr from-purple-900/40 via-orange-800/10 to-transparent blur-[50px]"></div>
+                    {festivalParticles.halloween.map(g => (
+                        <div key={`ghost-${g.id}`} className="absolute will-change-transform"
+                            style={{
+                                left: `${g.left}%`, fontSize: `${g.size}px`,
+                                animation: `float-ghost ${g.duration}s linear infinite`, animationDelay: `-${g.delay}s`,
+                                filter: 'drop-shadow(0 0 5px rgba(168, 85, 247, 0.5))'
+                            }}>
+                            {g.icon}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
         return null;
     };
 
