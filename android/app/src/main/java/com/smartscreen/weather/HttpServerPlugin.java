@@ -110,7 +110,7 @@ public class HttpServerPlugin extends Plugin {
             } catch (Exception e) {
                 Log.e(TAG, "Error creating JSON", e);
             }
-            return newFixedLengthResponse(Response.Status.OK, "application/json", json.toString());
+            return newFixedLengthResponse(Response.Status.OK, "application/json; charset=utf-8", json.toString());
         }
 
         private Response handlePostConfig(IHTTPSession session) {
@@ -132,7 +132,7 @@ public class HttpServerPlugin extends Plugin {
                 if (json.has("demo_festival")) editor.putString("demo_festival", json.getString("demo_festival"));
                 
                 editor.apply();
-                return newFixedLengthResponse(Response.Status.OK, "application/json", "{\"success\":true}");
+                return newFixedLengthResponse(Response.Status.OK, "application/json; charset=utf-8", "{\"success\":true}");
             } catch (Exception e) {
                 Log.e(TAG, "Error saving config", e);
                 return newFixedLengthResponse(Response.Status.INTERNAL_ERROR, "application/json", "{\"error\":\"" + e.getMessage() + "\"}");
@@ -142,6 +142,9 @@ public class HttpServerPlugin extends Plugin {
         private Response serveAsset(String path, String mimeType) {
             try {
                 InputStream is = context.getAssets().open(path);
+                if (mimeType.startsWith("text/") || mimeType.equals("application/json") || mimeType.equals("application/javascript")) {
+                    mimeType += "; charset=utf-8";
+                }
                 return newChunkedResponse(Response.Status.OK, mimeType, is);
             } catch (IOException e) {
                 Log.e(TAG, "Asset not found: " + path, e);
