@@ -21,8 +21,8 @@ const SmartDisplay = () => {
         return saved ? JSON.parse(saved) : {
             ha_url: "",
             ha_token: "",
-            weather_entity: "weather.forecast_home",
-            location_name: "北京市"
+            weather_entity: "weather.wo_de_jia_2",
+            location_name: ""
         };
     });
 
