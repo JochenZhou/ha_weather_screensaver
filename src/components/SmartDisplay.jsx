@@ -828,7 +828,7 @@ const SmartDisplay = () => {
                     <div className="flex justify-between items-start mb-4 z-10">
                         {/* Location */}
                         <div className="flex items-center space-x-2 text-white/90 text-lg font-medium tracking-wide cursor-pointer hover:text-white transition-colors drop-shadow-lg" onClick={handleOpenSettings}>
-                            <MapPin size={20} fill="currentColor" className="text-white/90" />
+                            <MapPin size={20} className="text-white/90" />
                             <span className="font-medium tracking-wider">{weather.friendlyName || config.location_name || "请配置位置"}</span>
                         </div>
 
@@ -1019,7 +1019,7 @@ const SmartDisplay = () => {
 
                                     <div className="space-y-6">
                                         <div className="space-y-3">
-                                            <label className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">Home Assistant URL</label>
+                                            <label className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">Home Assistant 地址</label>
                                             <input
                                                 type="text"
                                                 value={editConfig.ha_url}
@@ -1030,7 +1030,7 @@ const SmartDisplay = () => {
                                         </div>
 
                                         <div className="space-y-3">
-                                            <label className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">Long-Lived Access Token</label>
+                                            <label className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">长期访问令牌</label>
                                             <textarea
                                                 value={editConfig.ha_token}
                                                 onChange={(e) => setEditConfig({ ...editConfig, ha_token: e.target.value })}
@@ -1041,7 +1041,7 @@ const SmartDisplay = () => {
 
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-3">
-                                                <label className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">Entity ID</label>
+                                                <label className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">实体 ID</label>
                                                 <input
                                                     type="text"
                                                     value={editConfig.weather_entity}
@@ -1052,12 +1052,12 @@ const SmartDisplay = () => {
                                             </div>
 
                                             <div className="space-y-3">
-                                                <label className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">Location Name</label>
+                                                <label className="text-xs font-bold text-blue-400 uppercase tracking-widest pl-1">位置名称</label>
                                                 <input
                                                     type="text"
                                                     value={editConfig.location_name}
                                                     onChange={(e) => setEditConfig({ ...editConfig, location_name: e.target.value })}
-                                                    placeholder="Living Room"
+                                                    placeholder="客厅"
                                                     className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white placeholder-white/20 focus:outline-none focus:border-blue-500 transition-all text-sm"
                                                 />
                                             </div>
@@ -1070,14 +1070,14 @@ const SmartDisplay = () => {
                                         onClick={() => setShowSettings(false)}
                                         className="px-6 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-all text-sm font-medium"
                                     >
-                                        Cancel
+                                        取消
                                     </button>
                                     <button
                                         onClick={handleSaveConfig}
                                         className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-900/30 transition-all transform hover:scale-[1.02]"
                                     >
                                         <Save size={18} />
-                                        Save Changes
+                                        保存设置
                                     </button>
                                 </div>
                             </div>
