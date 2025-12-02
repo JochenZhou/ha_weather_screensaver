@@ -5,6 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import WeatherStyles from './WeatherStyles';
 import WeatherBackground from './WeatherBackground';
 import SettingsModal from './SettingsModal';
+import FlipClock from './FlipClock';
 import { CONDITION_CN_MAP, QWEATHER_ICON_MAP, normalizeWeatherState } from './weatherUtils';
 import { mqttService } from '../services/mqttService';
 
@@ -38,6 +39,10 @@ const SmartDisplay = () => {
     const [demoMode, setDemoMode] = useState(() => localStorage.getItem('demo_mode') === 'true');
     const [demoState, setDemoState] = useState(() => localStorage.getItem('demo_state') || 'CLEAR_DAY');
     const [demoFestival, setDemoFestival] = useState(() => localStorage.getItem('demo_festival') || '');
+    const [displayMode, setDisplayMode] = useState(() => localStorage.getItem('display_mode') || 'calendar');
+    const [showSeconds, setShowSeconds] = useState(() => localStorage.getItem('show_seconds') !== 'false');
+    const [cardColor, setCardColor] = useState(() => localStorage.getItem('card_color') || '#1c1c1e');
+    const [cardOpacity, setCardOpacity] = useState(() => parseFloat(localStorage.getItem('card_opacity') || '1'));
     const [serverUrl, setServerUrl] = useState(() => localStorage.getItem('config_server_url') || '');
     const [useRemoteConfig, setUseRemoteConfig] = useState(() => localStorage.getItem('use_remote_config') === 'true');
     const [deviceIP, setDeviceIP] = useState('');
@@ -83,6 +88,22 @@ const SmartDisplay = () => {
                     setDemoFestival(update.demo_festival);
                     localStorage.setItem('demo_festival', update.demo_festival);
                 }
+                if (update.display_mode) {
+                    setDisplayMode(update.display_mode);
+                    localStorage.setItem('display_mode', update.display_mode);
+                }
+                if (update.show_seconds !== undefined) {
+                    setShowSeconds(update.show_seconds);
+                    localStorage.setItem('show_seconds', update.show_seconds);
+                }
+                if (update.card_color) {
+                    setCardColor(update.card_color);
+                    localStorage.setItem('card_color', update.card_color);
+                }
+                if (update.card_opacity !== undefined) {
+                    setCardOpacity(update.card_opacity);
+                    localStorage.setItem('card_opacity', update.card_opacity);
+                }
             };
             mqttService.onWeatherUpdate = (update) => {
                 if (update.weather_entity) {
@@ -111,9 +132,18 @@ const SmartDisplay = () => {
     // --- 同步状态到 MQTT ---
     useEffect(() => {
         if (mqttConnected) {
-            mqttService.publishState({ demo_mode: demoMode, demo_state: demoState, demo_festival: demoFestival, weather_entity: config.weather_entity });
+            mqttService.publishState({
+                demo_mode: demoMode,
+                demo_state: demoState,
+                demo_festival: demoFestival,
+                display_mode: displayMode,
+                show_seconds: showSeconds,
+                card_color: cardColor,
+                card_opacity: cardOpacity,
+                weather_entity: config.weather_entity
+            });
         }
-    }, [mqttConnected, demoMode, demoState, demoFestival, config.weather_entity]);
+    }, [mqttConnected, demoMode, demoState, demoFestival, displayMode, showSeconds, cardColor, cardOpacity, config.weather_entity]);
 
     // --- 1.5. 获取局域网 IP 地址 ---
     useEffect(() => {
@@ -254,6 +284,10 @@ const SmartDisplay = () => {
                         setDemoFestival(remoteConfig.demo_festival);
                         localStorage.setItem('demo_festival', remoteConfig.demo_festival);
                     }
+                    if (remoteConfig.display_mode) {
+                        setDisplayMode(remoteConfig.display_mode);
+                        localStorage.setItem('display_mode', remoteConfig.display_mode);
+                    }
                     setFetchError(null);
                 }
             } catch (error) {
@@ -271,6 +305,10 @@ const SmartDisplay = () => {
         localStorage.setItem('smart_screen_config', JSON.stringify(editConfig));
         setConfig(editConfig);
         localStorage.setItem('demo_mode', demoMode);
+        localStorage.setItem('display_mode', displayMode);
+        localStorage.setItem('show_seconds', showSeconds);
+        localStorage.setItem('card_color', cardColor);
+        localStorage.setItem('card_opacity', cardOpacity);
         setShowSettings(false);
     };
 
@@ -491,55 +529,70 @@ const SmartDisplay = () => {
                     </div>
 
                     {/* Main Grid */}
-                    <div className="flex-1 grid grid-cols-12 z-10">
-
-                        {/* Left Info Column */}
-                        <div className="col-span-5 flex flex-col justify-between pt-8 pb-4 pl-2">
-                            <div>
-                                <h1 className="text-[140px] leading-none font-bold tracking-tighter text-white w-full drop-shadow-2xl font-[Helvetica Neue,Arial,sans-serif]">
-                                    {formatTime(now)}
-                                </h1>
-
-                                <div className="mt-4 text-3xl font-light text-white/95 tracking-widest drop-shadow-lg uppercase">
-                                    {formatDate(now)}
-                                </div>
-
-                                <div className="mt-6 flex items-center space-x-4 text-2xl text-white font-medium drop-shadow-lg bg-black/20 backdrop-blur-md w-fit px-4 py-2 rounded-xl border border-white/10 shadow-lg">
+                    <div className="flex-1 z-10 flex flex-col justify-center">
+                        {displayMode === 'flip_clock' ? (
+                            <div className="flex flex-col items-center justify-center h-full w-full animate-in fade-in duration-700">
+                                <FlipClock time={now} showSeconds={showSeconds} cardColor={cardColor} cardOpacity={cardOpacity} />
+                                <div className="mt-12 flex items-center space-x-6 text-2xl text-white font-medium drop-shadow-lg bg-black/20 backdrop-blur-md px-8 py-4 rounded-2xl border border-white/10 shadow-xl">
                                     {getWeatherIcon(weather.mappedKey)}
-                                    <span>{getWeatherText(weather.mappedKey)}</span>
-                                    <span className="text-3xl font-light">{weather.temperature}°</span>
-                                    {demoMode && <span className="bg-blue-500/80 text-[10px] px-1.5 py-0.5 rounded text-white font-bold tracking-wider uppercase ml-2 shadow-sm">DEMO</span>}
+                                    <span className="text-3xl">{getWeatherText(weather.mappedKey)}</span>
+                                    <span className="text-4xl font-light ml-2">{weather.temperature}°</span>
+                                </div>
+                                <div className="mt-6 text-xl text-white/60 tracking-widest font-light uppercase">
+                                    {formatDate(now)} · {lunarData.dayStr}
                                 </div>
                             </div>
+                        ) : (
+                            <div className="grid grid-cols-12 h-full">
+                                {/* Left Info Column */}
+                                <div className="col-span-5 flex flex-col justify-between pt-8 pb-4 pl-2">
+                                    <div>
+                                        <h1 className="text-[140px] leading-none font-bold tracking-tighter text-white w-full drop-shadow-2xl font-[Helvetica Neue,Arial,sans-serif]">
+                                            {formatTime(now)}
+                                        </h1>
 
-                            {/* Lunar Info - Elegant Typography */}
-                            <div className="space-y-1 mb-6 drop-shadow-md border-l-2 border-white/30 pl-4">
-                                {/* 节日/节气显示区域 */}
-                                {((demoMode && demoFestival) || lunarData.festivalStr) ? (
-                                    <div className="text-xl text-yellow-300 font-medium tracking-wider mb-1 drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
-                                        {(demoMode && demoFestival) ? demoFestival : lunarData.festivalStr}
-                                    </div>
-                                ) : null}
-                                <div className="text-2xl font-light text-white tracking-[0.2em] min-h-[2rem] drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
-                                    {lunarData.dayStr}
-                                </div>
-                                <div className="text-sm text-white/70 tracking-widest uppercase min-h-[1.75rem] drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
-                                    {lunarData.yearStr}
-                                </div>
-                            </div>
-                        </div>
+                                        <div className="mt-4 text-3xl font-light text-white/95 tracking-widest drop-shadow-lg uppercase">
+                                            {formatDate(now)}
+                                        </div>
 
-                        {/* Right Calendar Column */}
-                        <div className="col-span-7 pt-4 pl-8 pr-2">
-                            <div className="grid grid-cols-7 gap-y-1 text-center">
-                                {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
-                                    <div key={day} className="text-white/80 font-medium text-sm mb-4 uppercase tracking-widest drop-shadow-md">
-                                        {day}
+                                        <div className="mt-6 flex items-center space-x-4 text-2xl text-white font-medium drop-shadow-lg bg-black/20 backdrop-blur-md w-fit px-4 py-2 rounded-xl border border-white/10 shadow-lg">
+                                            {getWeatherIcon(weather.mappedKey)}
+                                            <span>{getWeatherText(weather.mappedKey)}</span>
+                                            <span className="text-3xl font-light">{weather.temperature}°</span>
+                                            {demoMode && <span className="bg-blue-500/80 text-[10px] px-1.5 py-0.5 rounded text-white font-bold tracking-wider uppercase ml-2 shadow-sm">DEMO</span>}
+                                        </div>
                                     </div>
-                                ))}
-                                {renderCalendar()}
+
+                                    {/* Lunar Info - Elegant Typography */}
+                                    <div className="space-y-1 mb-6 drop-shadow-md border-l-2 border-white/30 pl-4">
+                                        {/* 节日/节气显示区域 */}
+                                        {((demoMode && demoFestival) || lunarData.festivalStr) ? (
+                                            <div className="text-xl text-yellow-300 font-medium tracking-wider mb-1 drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
+                                                {(demoMode && demoFestival) ? demoFestival : lunarData.festivalStr}
+                                            </div>
+                                        ) : null}
+                                        <div className="text-2xl font-light text-white tracking-[0.2em] min-h-[2rem] drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
+                                            {lunarData.dayStr}
+                                        </div>
+                                        <div className="text-sm text-white/70 tracking-widest uppercase min-h-[1.75rem] drop-shadow-md" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
+                                            {lunarData.yearStr}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right Calendar Column */}
+                                <div className="col-span-7 pt-4 pl-8 pr-2">
+                                    <div className="grid grid-cols-7 gap-y-1 text-center">
+                                        {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
+                                            <div key={day} className="text-white/80 font-medium text-sm mb-4 uppercase tracking-widest drop-shadow-md">
+                                                {day}
+                                            </div>
+                                        ))}
+                                        {renderCalendar()}
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     {/* Settings Modal */}
@@ -549,6 +602,10 @@ const SmartDisplay = () => {
                         demoMode={demoMode} setDemoMode={setDemoMode}
                         demoState={demoState} setDemoState={setDemoState}
                         demoFestival={demoFestival} setDemoFestival={setDemoFestival}
+                        displayMode={displayMode} setDisplayMode={setDisplayMode}
+                        showSeconds={showSeconds} setShowSeconds={setShowSeconds}
+                        cardColor={cardColor} setCardColor={setCardColor}
+                        cardOpacity={cardOpacity} setCardOpacity={setCardOpacity}
                         useRemoteConfig={useRemoteConfig} setUseRemoteConfig={setUseRemoteConfig}
                         deviceIP={deviceIP} editConfig={editConfig} setEditConfig={setEditConfig}
                         handleSaveConfig={handleSaveConfig} mqttConnected={mqttConnected}

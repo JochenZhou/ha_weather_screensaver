@@ -4,7 +4,8 @@ import { Capacitor } from '@capacitor/core';
 
 const SettingsModal = ({
     showSettings, setShowSettings, fetchError, demoMode, setDemoMode, demoState, setDemoState,
-    demoFestival, setDemoFestival, useRemoteConfig, setUseRemoteConfig, deviceIP,
+    demoFestival, setDemoFestival, displayMode, setDisplayMode, showSeconds, setShowSeconds,
+    cardColor, setCardColor, cardOpacity, setCardOpacity, useRemoteConfig, setUseRemoteConfig, deviceIP,
     editConfig, setEditConfig, handleSaveConfig, setFetchError, mqttConnected
 }) => {
     const [enableMqtt, setEnableMqtt] = useState(localStorage.getItem('enable_mqtt') !== 'false');
@@ -238,6 +239,65 @@ const SettingsModal = ({
                         </div>
                     </div>
 
+                    {/* Display Mode Section */}
+                    <div className="space-y-2">
+                        <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-4">显示模式</h3>
+                        <div className="bg-[#2c2c2e] rounded-2xl overflow-hidden">
+                            <div className="p-4 flex items-center justify-between border-b border-white/5 last:border-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-2 bg-indigo-500 rounded-lg"><Settings className="text-white" size={20} /></div>
+                                    <div>
+                                        <p className="text-white font-medium text-[17px]">当前模式</p>
+                                        <p className="text-xs text-gray-400">选择主屏幕显示样式</p>
+                                    </div>
+                                </div>
+                                <select
+                                    value={displayMode}
+                                    onChange={(e) => { setDisplayMode(e.target.value); localStorage.setItem('display_mode', e.target.value); }}
+                                    className="bg-transparent text-blue-500 text-[17px] focus:outline-none text-right cursor-pointer dir-rtl"
+                                >
+                                    <option value="calendar">📅 日历模式</option>
+                                    <option value="flip_clock">⏰ 翻页时钟</option>
+                                </select>
+                            </div>
+
+                            {displayMode === 'flip_clock' && (
+                                <>
+                                    <div className="p-4 flex items-center justify-between border-b border-white/5 last:border-0">
+                                        <span className="text-white text-[17px]">显示秒针</span>
+                                        <label className="relative inline-flex items-center cursor-pointer">
+                                            <input type="checkbox" checked={showSeconds} onChange={(e) => { setShowSeconds(e.target.checked); localStorage.setItem('show_seconds', e.target.checked); }} className="sr-only peer" />
+                                            <div className="w-[51px] h-[31px] bg-[#39393d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-[20px] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-[27px] after:w-[27px] after:shadow-sm after:transition-all peer-checked:bg-[#34c759]"></div>
+                                        </label>
+                                    </div>
+                                    <div className="p-4 flex items-center justify-between border-b border-white/5 last:border-0">
+                                        <span className="text-white text-[17px]">卡片颜色</span>
+                                        <div className="flex items-center gap-2">
+                                            <input type="color" value={cardColor} onChange={(e) => { setCardColor(e.target.value); localStorage.setItem('card_color', e.target.value); }}
+                                                className="w-8 h-8 rounded-full overflow-hidden border-0 p-0 cursor-pointer" />
+                                            <span className="text-gray-400 text-sm font-mono uppercase">{cardColor}</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 flex flex-col gap-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-white text-[17px]">卡片透明度</span>
+                                            <span className="text-gray-400 text-sm">{Math.round(cardOpacity * 100)}%</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="1"
+                                            step="0.05"
+                                            value={cardOpacity}
+                                            onChange={(e) => { setCardOpacity(parseFloat(e.target.value)); localStorage.setItem('card_opacity', e.target.value); }}
+                                            className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                                        />
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Remote Config Section - iOS Grouped Style */}
                     <div className="space-y-2">
                         <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider ml-4">远程配置</h3>
@@ -320,13 +380,12 @@ const SettingsModal = ({
                                         </button>
                                     </div>
                                     {mqttTestMessage && (
-                                        <div className={`p-3 rounded-lg text-sm font-mono ${
-                                            mqttTestResult === 'success'
-                                                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                                : mqttTestResult === 'error'
+                                        <div className={`p-3 rounded-lg text-sm font-mono ${mqttTestResult === 'success'
+                                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                            : mqttTestResult === 'error'
                                                 ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                                                 : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                        }`}>
+                                            }`}>
                                             {mqttTestMessage}
                                         </div>
                                     )}
@@ -401,13 +460,12 @@ const SettingsModal = ({
                                             </button>
                                         </div>
                                         {apiTestMessage && (
-                                            <div className={`p-3 rounded-lg text-sm font-mono ${
-                                                apiTestResult === 'success'
-                                                    ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                                    : apiTestResult === 'error'
+                                            <div className={`p-3 rounded-lg text-sm font-mono ${apiTestResult === 'success'
+                                                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                                : apiTestResult === 'error'
                                                     ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                                                     : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                            }`}>
+                                                }`}>
                                                 {apiTestMessage}
                                             </div>
                                         )}
