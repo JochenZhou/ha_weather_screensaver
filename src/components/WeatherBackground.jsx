@@ -85,10 +85,22 @@ const WeatherBackground = ({ weatherKey, festival }) => {
         size: Math.random() * 2 + 1, delay: Math.random() * 5, duration: Math.random() * 3 + 3
     })), []);
 
+    const meteors = useMemo(() => Array.from({ length: 5 }).map((_, i) => ({
+        id: i,
+        left: `${Math.random() * 60 + 20}%`, // 20-80% 范围
+        top: `${Math.random() * 40}%`, // 0-40% 范围，从上方开始
+        length: Math.random() * 100 + 80, // 80-180px 长度
+        thickness: Math.random() * 1 + 1, // 1-2px 厚度
+        duration: Math.random() * 3 + 2, // 2-5秒
+        delay: Math.random() * 15, // 0-15秒延迟
+        opacity: Math.random() * 0.3 + 0.7 // 0.7-1 透明度
+    })), []);
+
     const renderStars = (key) => {
         if (!key.includes('NIGHT')) return null;
         return (
             <div className="particle-container z-0">
+                {/* 星星 */}
                 {stars.map((star) => (
                     <div key={`star-${star.id}`} className="absolute rounded-full bg-white shadow-[0_0_2px_rgba(255,255,255,0.8)]"
                         style={{
@@ -96,7 +108,33 @@ const WeatherBackground = ({ weatherKey, festival }) => {
                             animation: `twinkle ${star.duration}s infinite ease-in-out ${star.delay}s`
                         }} />
                 ))}
-                <div className="absolute top-[20%] right-[-10%] w-[150px] h-[1px] bg-gradient-to-r from-transparent via-white to-transparent animate-[meteor_12s_infinite_ease-in] opacity-0" />
+                {/* 流星 */}
+                {meteors.map((meteor) => (
+                    <div
+                        key={`meteor-${meteor.id}`}
+                        className="absolute will-change-transform"
+                        style={{
+                            left: meteor.left,
+                            top: meteor.top,
+                            width: `${meteor.length}px`,
+                            height: `${meteor.thickness}px`,
+                            background: 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.9) 30%, rgba(147,197,253,1) 100%)',
+                            borderRadius: '50%',
+                            boxShadow: `0 0 8px rgba(147,197,253,0.8), 0 0 16px rgba(255,255,255,0.6)`,
+                            opacity: 0,
+                            animation: `meteor ${meteor.duration}s ease-out infinite, meteor-glow 1.5s ease-in-out infinite`,
+                            animationDelay: `${meteor.delay}s, ${meteor.delay}s`
+                        }}
+                    >
+                        {/* 流星核心发光点 */}
+                        <div
+                            className="absolute right-0 top-1/2 -translate-y-1/2 w-[6px] h-[6px] rounded-full bg-white"
+                            style={{
+                                boxShadow: '0 0 8px rgba(255,255,255,1), 0 0 16px rgba(147,197,253,0.8)'
+                            }}
+                        />
+                    </div>
+                ))}
             </div>
         );
     };
