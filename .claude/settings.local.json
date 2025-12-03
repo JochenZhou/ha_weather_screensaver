@@ -26,7 +26,11 @@
       "Bash(sudo tee:*)",
       "Bash(npm install:*)",
       "Bash(npm run build)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npx cap sync android)",
+      "Bash(npm exec cap sync android)",
+      "Bash(node node_modules/@capacitor/cli/bin/capacitor sync android)",
+      "Bash(find src -name *.tsx -o -name *.ts -o -name *.css)"
     ],
     "deny": [],
     "ask": []
