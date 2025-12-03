@@ -237,6 +237,72 @@
 
         <div id="status" class="status-toast"></div>
 
+        <div class="section-title">显示设置</div>
+        <div class="inset-group">
+            <div class="list-item">
+                <label>显示模式</label>
+                <div class="input-wrapper">
+                    <select id="display_mode">
+                        <option value="calendar">📅 日历模式</option>
+                        <option value="flip_clock">⏰ 翻页时钟</option>
+                    </select>
+                </div>
+            </div>
+            <div class="list-item" id="flip_clock_settings">
+                <label>显示秒针</label>
+                <div class="toggle-switch" id="show_seconds_toggle" onclick="toggleShowSeconds()">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            <div class="list-item" id="flip_clock_settings_2">
+                <label>动态色模式</label>
+                <div class="toggle-switch" id="use_dynamic_color_toggle" onclick="toggleUseDynamicColor()">
+                    <div class="toggle-knob"></div>
+                </div>
+            </div>
+            <div class="list-item" id="card_color_setting">
+                <label>卡片颜色</label>
+                <div class="input-wrapper">
+                    <input type="color" id="card_color" value="#1c1c1e">
+                </div>
+            </div>
+            <div class="list-item" id="card_opacity_setting">
+                <label>卡片透明度</label>
+                <div class="input-wrapper">
+                    <input type="range" id="card_opacity" min="0" max="1" step="0.05" value="1" style="width: 100px;">
+                    <span id="opacity_value" style="margin-left: 10px; color: var(--blue); font-size: 14px; min-width: 40px;">100%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">MQTT 连接</div>
+        <div class="inset-group">
+            <div class="list-item">
+                <label>MQTT 服务器</label>
+                <div class="input-wrapper">
+                    <input type="text" id="mqtt_host" placeholder="192.168.1.100">
+                </div>
+            </div>
+            <div class="list-item">
+                <label>WebSocket 端口</label>
+                <div class="input-wrapper">
+                    <input type="text" id="mqtt_port" placeholder="1884">
+                </div>
+            </div>
+            <div class="list-item">
+                <label>用户名</label>
+                <div class="input-wrapper">
+                    <input type="text" id="mqtt_username" placeholder="可选">
+                </div>
+            </div>
+            <div class="list-item">
+                <label>密码</label>
+                <div class="input-wrapper">
+                    <input type="password" id="mqtt_password" placeholder="可选">
+                </div>
+            </div>
+        </div>
+
         <div class="section-title">Home Assistant 连接</div>
         <div class="inset-group">
             <div class="list-item">
@@ -337,6 +403,8 @@
 
     <script>
         let demoMode = false;
+        let showSeconds = true;
+        let useDynamicColor = false;
 
         async function loadConfig() {
             try {
@@ -346,10 +414,23 @@
                 document.getElementById('ha_token').value = config.ha_token || '';
                 document.getElementById('weather_entity').value = config.weather_entity || 'weather.forecast_home';
                 document.getElementById('location_name').value = config.location_name || '北京市';
+                document.getElementById('mqtt_host').value = config.mqtt_host || '';
+                document.getElementById('mqtt_port').value = config.mqtt_port || '1884';
+                document.getElementById('mqtt_username').value = config.mqtt_username || '';
+                document.getElementById('mqtt_password').value = config.mqtt_password || '';
                 demoMode = config.demo_mode || false;
                 document.getElementById('demo_toggle').classList.toggle('active', demoMode);
                 document.getElementById('demo_state').value = config.demo_state || 'CLEAR_DAY';
                 document.getElementById('demo_festival').value = config.demo_festival || '';
+                document.getElementById('display_mode').value = config.display_mode || 'calendar';
+                showSeconds = config.show_seconds !== false;
+                document.getElementById('show_seconds_toggle').classList.toggle('active', showSeconds);
+                useDynamicColor = config.use_dynamic_color === true;
+                document.getElementById('use_dynamic_color_toggle').classList.toggle('active', useDynamicColor);
+                document.getElementById('card_color').value = config.card_color || '#1c1c1e';
+                document.getElementById('card_opacity').value = config.card_opacity || 1;
+                document.getElementById('opacity_value').textContent = Math.round((config.card_opacity || 1) * 100) + '%';
+                updateDisplaySettings();
             } catch (error) {
                 showStatus('❌ 加载配置失败', 'error');
             }
@@ -360,15 +441,54 @@
             document.getElementById('demo_toggle').classList.toggle('active', demoMode);
         }
 
+        function toggleShowSeconds() {
+            showSeconds = !showSeconds;
+            document.getElementById('show_seconds_toggle').classList.toggle('active', showSeconds);
+        }
+
+        function toggleUseDynamicColor() {
+            useDynamicColor = !useDynamicColor;
+            document.getElementById('use_dynamic_color_toggle').classList.toggle('active', useDynamicColor);
+            updateDisplaySettings();
+        }
+
+        function updateDisplaySettings() {
+            const isFlipClock = document.getElementById('display_mode').value === 'flip_clock';
+            const clockSettings = document.querySelectorAll('[id^="flip_clock_settings"]');
+            const cardColorSetting = document.getElementById('card_color_setting');
+            const cardOpacitySetting = document.getElementById('card_opacity_setting');
+
+            clockSettings.forEach(setting => {
+                setting.style.display = isFlipClock ? 'flex' : 'none';
+            });
+
+            if (cardColorSetting) {
+                cardColorSetting.style.display = isFlipClock && !useDynamicColor ? 'flex' : 'none';
+            }
+
+            if (cardOpacitySetting) {
+                cardOpacitySetting.style.display = isFlipClock ? 'flex' : 'none';
+            }
+        }
+
         async function saveConfig() {
             const config = {
                 ha_url: document.getElementById('ha_url').value,
                 ha_token: document.getElementById('ha_token').value,
                 weather_entity: document.getElementById('weather_entity').value,
                 location_name: document.getElementById('location_name').value,
+                mqtt_host: document.getElementById('mqtt_host').value,
+                mqtt_port: document.getElementById('mqtt_port').value,
+                mqtt_username: document.getElementById('mqtt_username').value,
+                mqtt_password: document.getElementById('mqtt_password').value,
                 demo_mode: demoMode,
                 demo_state: document.getElementById('demo_state').value,
-                demo_festival: document.getElementById('demo_festival').value
+                demo_festival: document.getElementById('demo_festival').value,
+                display_mode: document.getElementById('display_mode').value,
+                show_seconds: showSeconds,
+                card_color: document.getElementById('card_color').value,
+                card_opacity: parseFloat(document.getElementById('card_opacity').value),
+                use_dynamic_color: useDynamicColor
             };
 
             try {
@@ -389,6 +509,15 @@
             document.getElementById('demo_state').value = state;
             saveConfig();
         }
+
+        // 添加显示模式变化监听器
+        document.getElementById('display_mode').addEventListener('change', updateDisplaySettings);
+
+        // 添加透明度值显示更新
+        document.getElementById('card_opacity').addEventListener('input', function(e) {
+            const percentage = Math.round(e.target.value * 100);
+            document.getElementById('opacity_value').textContent = percentage + '%';
+        });
 
         function showStatus(message, type) {
             const status = document.getElementById('status');

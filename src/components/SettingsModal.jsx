@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, X, Save, AlertTriangle, PlayCircle, Wifi, CheckCircle, XCircle } from 'lucide-react';
+import { Settings, X, Save, AlertTriangle, PlayCircle, Wifi, CheckCircle, XCircle, RotateCcw, RefreshCw } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 
 const SettingsModal = ({
@@ -7,7 +7,8 @@ const SettingsModal = ({
     demoFestival, setDemoFestival, displayMode, setDisplayMode, showSeconds, setShowSeconds,
     cardColor, setCardColor, cardOpacity, setCardOpacity, useDynamicColor, setUseDynamicColor,
     useRemoteConfig, setUseRemoteConfig, deviceIP,
-    editConfig, setEditConfig, handleSaveConfig, setFetchError, mqttConnected
+    editConfig, setEditConfig, handleSaveConfig, setFetchError, mqttConnected,
+    syncRemoteConfig = null
 }) => {
     const [enableMqtt, setEnableMqtt] = useState(localStorage.getItem('enable_mqtt') !== 'false');
     const [enableApi, setEnableApi] = useState(localStorage.getItem('enable_api') !== 'false');
@@ -134,9 +135,9 @@ const SettingsModal = ({
     if (!showSettings) return null;
 
     return (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-8 transition-opacity duration-300">
-            <div className="bg-[#111] w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col max-h-full">
-                <div className="flex justify-between items-center p-6 border-b border-white/5 bg-white/5 backdrop-blur-md sticky top-0 z-10">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 transition-opacity duration-300">
+            <div className="bg-[#111] w-full h-full max-h-full rounded-3xl border border-white/10 shadow-2xl overflow-hidden flex flex-col">
+                <div className="flex justify-between items-center p-6 border-b border-white/5 bg-white/5 backdrop-blur-md sticky top-0 z-10 shrink-0">
                     <h2 className="text-xl text-white font-semibold flex items-center gap-3 tracking-tight">
                         <div className="p-2 bg-blue-500 rounded-lg shadow-lg shadow-blue-500/20"><Settings className="text-white" size={20} /></div>
                         系统设置
@@ -146,7 +147,7 @@ const SettingsModal = ({
                     </button>
                 </div>
 
-                <div className="p-6 space-y-8 overflow-y-auto text-left custom-scrollbar">
+                <div className="p-6 space-y-8 overflow-y-auto text-left custom-scrollbar flex-1">
                     {fetchError && (
                         <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex items-start gap-4 backdrop-blur-sm">
                             <div className="p-2 bg-red-500/20 rounded-full"><AlertTriangle className="text-red-400" size={18} /></div>
@@ -348,6 +349,13 @@ const SettingsModal = ({
                                             {deviceIP ? `http://${deviceIP}:3001` : '正在获取IP地址...'}
                                         </p>
                                         {Capacitor.isNativePlatform() && <p className="text-[11px] text-yellow-500/80 mt-1">状态: {localStorage.getItem('server_status') || '启动中...'}</p>}
+                                        <button
+                                            onClick={() => syncRemoteConfig && syncRemoteConfig()}
+                                            className="mt-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all"
+                                        >
+                                            <RefreshCw size={12} />
+                                            同步配置
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -513,8 +521,10 @@ const SettingsModal = ({
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-white/5 bg-white/5 flex justify-end gap-4">
-                    <button onClick={() => setShowSettings(false)} className="px-6 py-2.5 rounded-xl text-white/60 hover:text-white hover:bg-white/10 transition-all text-sm font-medium">取消</button>
+                <div className="p-6 border-t border-white/5 bg-white/5 flex justify-end gap-4 shrink-0">
+                    <button onClick={() => setShowSettings(false)} className="px-6 py-2.5 rounded-xl bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white/80 hover:text-white transition-all text-sm font-medium flex items-center gap-2">
+                        <RotateCcw size={16} />取消
+                    </button>
                     <button onClick={handleSaveConfig} className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-900/30 transition-all transform hover:scale-[1.02]">
                         <Save size={18} />保存设置
                     </button>

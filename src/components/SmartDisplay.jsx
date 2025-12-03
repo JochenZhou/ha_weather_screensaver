@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MapPin, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind, Settings, Moon, CloudFog, CloudHail, CloudDrizzle } from 'lucide-react';
+import { MapPin, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind, Settings, Moon, CloudFog, CloudHail, CloudDrizzle, Clock, Calendar } from 'lucide-react';
 import { Solar, Lunar } from 'lunar-javascript';
 import { Capacitor } from '@capacitor/core';
 import WeatherStyles from './WeatherStyles';
@@ -282,7 +282,7 @@ const SmartDisplay = () => {
     useEffect(() => {
         if (!useRemoteConfig) return;
 
-        const loadRemoteConfig = async () => {
+        const loadRemoteConfig = async (isInitial = false) => {
             try {
                 if (!serverUrl && !deviceIP) return; // 没有有效地址时跳过
                 const apiUrl = serverUrl ? `${serverUrl.trim().replace(/\/$/, '')}/api/config` : `http://${deviceIP}:3001/api/config`;
@@ -295,34 +295,176 @@ const SmartDisplay = () => {
 
                 if (response.ok) {
                     const remoteConfig = await response.json();
-                    setConfig(remoteConfig);
-                    setEditConfig(remoteConfig);
-                    if (remoteConfig.demo_mode !== undefined) {
-                        setDemoMode(remoteConfig.demo_mode);
-                        localStorage.setItem('demo_mode', remoteConfig.demo_mode);
+
+                    // 只有在初始加载时才自动应用远程配置
+                    // 后续的同步只检查是否有更新，但不自动覆盖本地修改
+                    if (isInitial) {
+                        setConfig(remoteConfig);
+                        setEditConfig(remoteConfig);
+                        if (remoteConfig.demo_mode !== undefined) {
+                            setDemoMode(remoteConfig.demo_mode);
+                            localStorage.setItem('demo_mode', remoteConfig.demo_mode);
+                        }
+                        if (remoteConfig.demo_state) {
+                            setDemoState(remoteConfig.demo_state);
+                            localStorage.setItem('demo_state', remoteConfig.demo_state);
+                        }
+                        if (remoteConfig.demo_festival !== undefined) {
+                            setDemoFestival(remoteConfig.demo_festival);
+                            localStorage.setItem('demo_festival', remoteConfig.demo_festival);
+                        }
+                        if (remoteConfig.display_mode) {
+                            setDisplayMode(remoteConfig.display_mode);
+                            localStorage.setItem('display_mode', remoteConfig.display_mode);
+                        }
+                        if (remoteConfig.show_seconds !== undefined) {
+                            setShowSeconds(remoteConfig.show_seconds);
+                            localStorage.setItem('show_seconds', remoteConfig.show_seconds);
+                        }
+                        if (remoteConfig.card_color) {
+                            setCardColor(remoteConfig.card_color);
+                            localStorage.setItem('card_color', remoteConfig.card_color);
+                        }
+                        if (remoteConfig.card_opacity !== undefined) {
+                            setCardOpacity(remoteConfig.card_opacity);
+                            localStorage.setItem('card_opacity', remoteConfig.card_opacity);
+                        }
+                        if (remoteConfig.use_dynamic_color !== undefined) {
+                            setUseDynamicColor(remoteConfig.use_dynamic_color);
+                            localStorage.setItem('use_dynamic_color', remoteConfig.use_dynamic_color);
+                        }
+                        setFetchError(null);
+                    } else {
+                        // 非初始加载时，只检查连接状态，不自动应用配置
+                        console.log('Remote config checked, connection OK');
                     }
-                    if (remoteConfig.demo_state) {
-                        setDemoState(remoteConfig.demo_state);
-                        localStorage.setItem('demo_state', remoteConfig.demo_state);
-                    }
-                    if (remoteConfig.demo_festival !== undefined) {
-                        setDemoFestival(remoteConfig.demo_festival);
-                        localStorage.setItem('demo_festival', remoteConfig.demo_festival);
-                    }
-                    if (remoteConfig.display_mode) {
-                        setDisplayMode(remoteConfig.display_mode);
-                        localStorage.setItem('display_mode', remoteConfig.display_mode);
-                    }
-                    setFetchError(null);
                 }
             } catch (error) {
                 console.error('Remote config sync failed:', error);
             }
         };
 
-        loadRemoteConfig();
-        const interval = setInterval(loadRemoteConfig, 3000);
-        return () => clearInterval(interval);
+        // 初始加载远程配置
+        loadRemoteConfig(true);
+
+        // 设置较长间隔的连接检查（30秒），但不自动同步配置
+        const interval = setInterval(() => loadRemoteConfig(false), 30000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, [useRemoteConfig, serverUrl, deviceIP]);
+
+    // --- WebSocket 实时更新处理 ---
+    useEffect(() => {
+        if (!useRemoteConfig) return;
+
+        let ws = null;
+
+        // 建立 WebSocket 连接接收实时更新
+        const connectWebSocket = () => {
+            try {
+                const wsUrl = serverUrl ?
+                    `ws://${serverUrl.trim().replace(/^https?:\/\//, '').replace(/\/$/, '')}:3002` :
+                    `ws://${deviceIP}:3002`;
+
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {
+                    console.log('🔗 Connected to config updates WebSocket');
+                    console.log('🌐 WebSocket URL:', wsUrl);
+                };
+
+                ws.onclose = (event) => {
+                    console.log('❌ WebSocket connection closed:', event.code, event.reason);
+                    console.log('🔄 Attempting to reconnect in 3 seconds...');
+                    setTimeout(connectWebSocket, 3000);
+                };
+
+                ws.onerror = (error) => {
+                    console.error('🚫 WebSocket error:', error);
+                };
+
+                ws.onmessage = (event) => {
+                    try {
+                        const message = JSON.parse(event.data);
+                        console.log('📨 Raw WebSocket message received:', event.data);
+                        console.log('📨 Parsed message:', message);
+                        if (message.type === 'config_update') {
+                            console.log('📨 Received config update:', message.data);
+                            console.log('📨 Current useRemoteConfig:', useRemoteConfig);
+                            if (!useRemoteConfig) {
+                                console.log('🚫 Remote config disabled, ignoring update');
+                                return;
+                            }
+                            const remoteConfig = message.data;
+
+                            // 应用远程配置更新
+                            setConfig(remoteConfig);
+                            setEditConfig(remoteConfig);
+                            if (remoteConfig.demo_mode !== undefined) {
+                                setDemoMode(remoteConfig.demo_mode);
+                                localStorage.setItem('demo_mode', remoteConfig.demo_mode);
+                            }
+                            if (remoteConfig.demo_state) {
+                                setDemoState(remoteConfig.demo_state);
+                                localStorage.setItem('demo_state', remoteConfig.demo_state);
+                            }
+                            if (remoteConfig.demo_festival !== undefined) {
+                                setDemoFestival(remoteConfig.demo_festival);
+                                localStorage.setItem('demo_festival', remoteConfig.demo_festival);
+                            }
+                            if (remoteConfig.display_mode) {
+                                setDisplayMode(remoteConfig.display_mode);
+                                localStorage.setItem('display_mode', remoteConfig.display_mode);
+                            }
+                            if (remoteConfig.show_seconds !== undefined) {
+                                setShowSeconds(remoteConfig.show_seconds);
+                                localStorage.setItem('show_seconds', remoteConfig.show_seconds);
+                            }
+                            if (remoteConfig.card_color) {
+                                setCardColor(remoteConfig.card_color);
+                                localStorage.setItem('card_color', remoteConfig.card_color);
+                            }
+                            if (remoteConfig.card_opacity !== undefined) {
+                                setCardOpacity(remoteConfig.card_opacity);
+                                localStorage.setItem('card_opacity', remoteConfig.card_opacity);
+                            }
+                            if (remoteConfig.use_dynamic_color !== undefined) {
+                                setUseDynamicColor(remoteConfig.use_dynamic_color);
+                                localStorage.setItem('use_dynamic_color', remoteConfig.use_dynamic_color);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Failed to parse WebSocket message:', error);
+                    }
+                };
+
+                ws.onclose = () => {
+                    console.log('❌ WebSocket connection closed, attempting to reconnect...');
+                    setTimeout(connectWebSocket, 3000); // 3秒后重连
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                };
+            } catch (error) {
+                console.error('Failed to connect to WebSocket:', error);
+                // 如果 WebSocket 连接失败，5秒后重试
+                setTimeout(connectWebSocket, 5000);
+            }
+        };
+
+        // 启动 WebSocket 连接
+        if (serverUrl || deviceIP) {
+            connectWebSocket();
+        }
+
+        return () => {
+            if (ws) {
+                ws.close();
+            }
+        };
     }, [useRemoteConfig, serverUrl, deviceIP]);
 
     // --- 事件处理 ---
@@ -336,6 +478,96 @@ const SmartDisplay = () => {
         localStorage.setItem('card_opacity', cardOpacity);
         localStorage.setItem('use_dynamic_color', useDynamicColor);
         setShowSettings(false);
+    };
+
+    // --- 切换显示模式 ---
+    const handleToggleDisplayMode = () => {
+        const newMode = displayMode === 'flip_clock' ? 'calendar' : 'flip_clock';
+        setDisplayMode(newMode);
+        localStorage.setItem('display_mode', newMode);
+
+        // 同步到 MQTT
+        if (mqttConnected) {
+            mqttService.publishState({
+                demo_mode: demoMode,
+                demo_state: demoState,
+                demo_festival: demoFestival,
+                display_mode: newMode,
+                show_seconds: showSeconds,
+                card_color: cardColor,
+                card_opacity: cardOpacity,
+                use_dynamic_color: useDynamicColor,
+                weather_entity: config.weather_entity
+            });
+        }
+    };
+
+    // --- 手动同步远程配置 ---
+    const handleSyncRemoteConfig = async () => {
+        if (!useRemoteConfig) return;
+
+        try {
+            if (!serverUrl && !deviceIP) {
+                console.log('No valid remote server address');
+                return;
+            }
+
+            const apiUrl = serverUrl ? `${serverUrl.trim().replace(/\/$/, '')}/api/config` : `http://${deviceIP}:3001/api/config`;
+
+            const response = await fetch(apiUrl, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors'
+            });
+
+            if (response.ok) {
+                const remoteConfig = await response.json();
+
+                // 应用远程配置
+                setConfig(remoteConfig);
+                setEditConfig(remoteConfig);
+
+                if (remoteConfig.demo_mode !== undefined) {
+                    setDemoMode(remoteConfig.demo_mode);
+                    localStorage.setItem('demo_mode', remoteConfig.demo_mode);
+                }
+                if (remoteConfig.demo_state) {
+                    setDemoState(remoteConfig.demo_state);
+                    localStorage.setItem('demo_state', remoteConfig.demo_state);
+                }
+                if (remoteConfig.demo_festival !== undefined) {
+                    setDemoFestival(remoteConfig.demo_festival);
+                    localStorage.setItem('demo_festival', remoteConfig.demo_festival);
+                }
+                if (remoteConfig.display_mode) {
+                    setDisplayMode(remoteConfig.display_mode);
+                    localStorage.setItem('display_mode', remoteConfig.display_mode);
+                }
+                if (remoteConfig.show_seconds !== undefined) {
+                    setShowSeconds(remoteConfig.show_seconds);
+                    localStorage.setItem('show_seconds', remoteConfig.show_seconds);
+                }
+                if (remoteConfig.card_color) {
+                    setCardColor(remoteConfig.card_color);
+                    localStorage.setItem('card_color', remoteConfig.card_color);
+                }
+                if (remoteConfig.card_opacity !== undefined) {
+                    setCardOpacity(remoteConfig.card_opacity);
+                    localStorage.setItem('card_opacity', remoteConfig.card_opacity);
+                }
+                if (remoteConfig.use_dynamic_color !== undefined) {
+                    setUseDynamicColor(remoteConfig.use_dynamic_color);
+                    localStorage.setItem('use_dynamic_color', remoteConfig.use_dynamic_color);
+                }
+
+                setFetchError(null);
+                console.log('Remote config manually synced successfully');
+            } else {
+                console.log('Failed to sync remote config:', response.status);
+            }
+        } catch (error) {
+            console.error('Manual remote config sync failed:', error);
+        }
     };
 
     const handleOpenSettings = () => {
@@ -547,7 +779,14 @@ const SmartDisplay = () => {
 
                         {/* Status Icons - Glassmorphism */}
                         <div className="flex items-center space-x-5">
-                            <button onClick={handleOpenSettings} className={`transition-all hover:scale-110 focus:outline-none drop-shadow-md relative ${fetchError ? 'text-red-400 animate-pulse' : 'text-white/90 hover:text-white'}`}>
+                            <button
+                                onClick={handleToggleDisplayMode}
+                                className="transition-all hover:scale-110 focus:outline-none text-white/90 hover:text-white"
+                                title={`切换到${displayMode === 'flip_clock' ? '日历' : '翻页时钟'}模式`}
+                            >
+                                {displayMode === 'flip_clock' ? <Calendar size={24} /> : <Clock size={24} />}
+                            </button>
+                            <button onClick={handleOpenSettings} className={`transition-all hover:scale-110 focus:outline-none relative ${fetchError ? 'text-red-400 animate-pulse' : 'text-white/90 hover:text-white'}`}>
                                 <Settings size={24} />
                                 {fetchError && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-black box-content"></span>}
                             </button>
@@ -564,6 +803,7 @@ const SmartDisplay = () => {
                                         {getWeatherIcon(weather.mappedKey)}
                                         <span className="text-3xl">{getWeatherText(weather.mappedKey)}</span>
                                         <span className="text-4xl font-light ml-2">{weather.temperature}°</span>
+                                        {demoMode && <span className="bg-blue-500/80 text-[10px] px-1.5 py-0.5 rounded text-white font-bold tracking-wider uppercase ml-2 shadow-sm">DEMO</span>}
                                     </div>
                                     <div className="h-6 w-px bg-white/20"></div>
                                     <div className="text-xl text-white/80 tracking-widest font-light uppercase whitespace-nowrap">
@@ -610,8 +850,8 @@ const SmartDisplay = () => {
                                 </div>
 
                                 {/* Right Calendar Column */}
-                                <div className="col-span-7 pt-4 pl-8 pr-2">
-                                    <div className="grid grid-cols-7 gap-y-1 text-center">
+                                <div className="col-span-7 pt-4 pl-8 pr-0 flex items-center">
+                                    <div className="grid grid-cols-7 gap-y-1 text-center w-full">
                                         {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
                                             <div key={day} className="text-white/80 font-medium text-sm mb-4 uppercase tracking-widest drop-shadow-md">
                                                 {day}
@@ -639,6 +879,7 @@ const SmartDisplay = () => {
                         useRemoteConfig={useRemoteConfig} setUseRemoteConfig={setUseRemoteConfig}
                         deviceIP={deviceIP} editConfig={editConfig} setEditConfig={setEditConfig}
                         handleSaveConfig={handleSaveConfig} mqttConnected={mqttConnected}
+                        syncRemoteConfig={handleSyncRemoteConfig}
                     />
 
                 </div>
