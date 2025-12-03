@@ -40,7 +40,10 @@ jobs:
     
     - name: Sync Capacitor
       run: npx cap sync android
-    
+
+    - name: Update version
+      run: npm run update-version
+
     - name: Generate app icons
       run: npm run generate-icons
     
