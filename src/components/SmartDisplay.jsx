@@ -391,7 +391,7 @@ const SmartDisplay = () => {
             clearInterval(interval);
             clearInterval(syncCheckTimer);
         };
-    }, [useRemoteConfig, serverUrl, deviceIP]);
+    }, [useRemoteConfig, serverUrl, deviceIP, lastSyncTrigger]);
 
     // --- 事件处理 ---
     const handleSaveConfig = async () => {
