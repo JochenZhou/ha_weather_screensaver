@@ -28,36 +28,57 @@ blueprint:
 trigger:
   - platform: state
     entity_id: !input weather_entity
+
   - platform: time_pattern
     minutes: !input update_interval
 
+variables:
+  weather_entity: !input weather_entity
+  mqtt_topic: !input mqtt_topic
+
 action:
   - service: mqtt.publish
-    target:
-      entity_id: !input weather_entity
     data:
-      topic: !input mqtt_topic
+      topic: "{{ mqtt_topic }}"
       retain: true
-      payload_template: >
-        {% set entity = !input weather_entity %}
-        {% set attrs = state_attr(entity) | default({}) %}
-        {{ {
-          'state': states(entity),
-          'temperature': attrs.temperature,
-          'friendly_name': attrs.friendly_name,
-          'attributes': {
-            'temperature': attrs.temperature,
-            'humidity': attrs.humidity,
-            'pressure': attrs.pressure,
-            'wind_speed': attrs.wind_speed,
-            'wind_bearing': attrs.wind_bearing,
-            'visibility': attrs.visibility,
-            'forecast': attrs.forecast,
-            'skycon': attrs.skycon,
-            'condition_cn': attrs.condition_cn,
-            'qweather_icon': attrs.qweather_icon,
-            'friendly_name': attrs.friendly_name
-          }
-        } | tojson }}
+      payload: >
+        {% set s = states[weather_entity] %}
+        {% set a = s.attributes %}
+
+        {# --- 动态构建 attributes 字段 --- #}
+        {% set attrs = dict() %}
+
+        {% if 'temperature' in a %}
+          {% set attrs = attrs | combine({'temperature': a.temperature}) %}
+        {% endif %}
+
+        {% if 'humidity' in a %}
+          {% set attrs = attrs | combine({'humidity': a.humidity}) %}
+        {% endif %}
+
+        {% if 'skycon' in a %}
+          {% set attrs = attrs | combine({'skycon': a.skycon}) %}
+        {% endif %}
+
+        {% if 'condition_cn' in a %}
+          {% set attrs = attrs | combine({'condition_cn': a.condition_cn}) %}
+        {% endif %}
+
+        {% if 'qweather_icon' in a %}
+          {% set attrs = attrs | combine({'qweather_icon': a.qweather_icon}) %}
+        {% endif %}
+
+        {% if 'friendly_name' in a %}
+          {% set attrs = attrs | combine({'friendly_name': a.friendly_name}) %}
+        {% endif %}
+
+        {{
+          {
+            'state': s.state,
+            'temperature': a.temperature if 'temperature' in a else None,
+            'friendly_name': a.friendly_name if 'friendly_name' in a else '',
+            'attributes': attrs
+          } | tojson
+        }}
 
 mode: single

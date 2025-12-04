@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { MapPin, Sun, Cloud, CloudRain, CloudSnow, CloudLightning, Wind, Settings, Moon, CloudFog, CloudHail, CloudDrizzle, Clock, Calendar } from 'lucide-react';
 import { Solar, Lunar } from 'lunar-javascript';
 import { Capacitor } from '@capacitor/core';
@@ -49,7 +49,7 @@ const SmartDisplay = () => {
     const [deviceIP, setDeviceIP] = useState('');
     const [serverStatus, setServerStatus] = useState('');
     const [mqttConnected, setMqttConnected] = useState(false);
-    const [lastSyncTrigger, setLastSyncTrigger] = useState(0);
+    const lastSyncTriggerRef = useRef(0);
 
     const [weather, setWeather] = useState({
         state: "sunny",
@@ -384,13 +384,14 @@ const SmartDisplay = () => {
                     const data = await response.json();
                     
                     // 如果是第一次检查（lastSyncTrigger为0），直接记录时间戳，不同步
-                    if (lastSyncTrigger === 0) {
-                        setLastSyncTrigger(data.timestamp);
+                    if (lastSyncTriggerRef.current === 0) {
+                        lastSyncTriggerRef.current = data.timestamp;
+                        console.log('📌 初始化同步时间戳:', data.timestamp);
                         return;
                     }
                     
                     // 检查是否有新的配置更新
-                    if (data.timestamp > lastSyncTrigger) {
+                    if (data.timestamp > lastSyncTriggerRef.current) {
                         const now = Date.now();
                         const configAge = now - data.timestamp;
                         
@@ -400,8 +401,12 @@ const SmartDisplay = () => {
                             return;
                         }
                         
-                        console.log('🔄 检测到远程配置更新，自动同步...');
-                        setLastSyncTrigger(data.timestamp);
+                        console.log('🔄 检测到远程配置更新，自动同步...', {
+                            oldTimestamp: lastSyncTriggerRef.current,
+                            newTimestamp: data.timestamp,
+                            configAge
+                        });
+                        lastSyncTriggerRef.current = data.timestamp;
                         await loadRemoteConfig(true);
                     }
                 }
@@ -420,7 +425,7 @@ const SmartDisplay = () => {
             clearInterval(interval);
             clearInterval(syncCheckTimer);
         };
-    }, [useRemoteConfig, serverUrl, deviceIP, lastSyncTrigger]);
+    }, [useRemoteConfig, serverUrl, deviceIP]);
 
     // --- 事件处理 ---
     const handleSaveConfig = () => {
