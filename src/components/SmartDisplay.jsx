@@ -300,8 +300,21 @@ const SmartDisplay = () => {
                     // 只有在初始加载时才自动应用远程配置
                     // 后续的同步只检查是否有更新，但不自动覆盖本地修改
                     if (isInitial) {
-                        setConfig(remoteConfig);
-                        setEditConfig(remoteConfig);
+                        // 保存主配置到 localStorage
+                        const mainConfig = {
+                            ha_url: remoteConfig.ha_url,
+                            ha_token: remoteConfig.ha_token,
+                            weather_entity: remoteConfig.weather_entity,
+                            location_name: remoteConfig.location_name,
+                            mqtt_host: remoteConfig.mqtt_host,
+                            mqtt_port: remoteConfig.mqtt_port,
+                            mqtt_username: remoteConfig.mqtt_username,
+                            mqtt_password: remoteConfig.mqtt_password
+                        };
+                        localStorage.setItem('smart_screen_config', JSON.stringify(mainConfig));
+                        setConfig(mainConfig);
+                        setEditConfig(mainConfig);
+                        
                         if (remoteConfig.demo_mode !== undefined) {
                             setDemoMode(remoteConfig.demo_mode);
                             localStorage.setItem('demo_mode', remoteConfig.demo_mode);
@@ -394,7 +407,7 @@ const SmartDisplay = () => {
     }, [useRemoteConfig, serverUrl, deviceIP, lastSyncTrigger]);
 
     // --- 事件处理 ---
-    const handleSaveConfig = async () => {
+    const handleSaveConfig = () => {
         localStorage.setItem('smart_screen_config', JSON.stringify(editConfig));
         setConfig(editConfig);
         localStorage.setItem('demo_mode', demoMode);
@@ -404,35 +417,35 @@ const SmartDisplay = () => {
         localStorage.setItem('card_opacity', cardOpacity);
         localStorage.setItem('use_dynamic_color', useDynamicColor);
         
-        // 如果启用了远程配置，保存到服务器并触发同步
-        if (useRemoteConfig && (serverUrl || deviceIP)) {
-            try {
-                const apiUrl = serverUrl ? `${serverUrl.trim().replace(/\/$/, '')}/api/config` : `http://${deviceIP}:3001/api/config`;
-                const configToSave = {
-                    ...editConfig,
-                    demo_mode: demoMode,
-                    demo_state: demoState,
-                    demo_festival: demoFestival,
-                    display_mode: displayMode,
-                    show_seconds: showSeconds,
-                    card_color: cardColor,
-                    card_opacity: cardOpacity,
-                    use_dynamic_color: useDynamicColor
-                };
-                
-                await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    mode: 'cors',
-                    body: JSON.stringify(configToSave)
-                });
-                console.log('✅ 配置已保存到服务器');
-            } catch (error) {
-                console.error('保存到服务器失败:', error);
-            }
-        }
-        
+        // 立即关闭设置界面
         setShowSettings(false);
+        
+        // 后台异步保存到服务器
+        if (useRemoteConfig && (serverUrl || deviceIP)) {
+            const apiUrl = serverUrl ? `${serverUrl.trim().replace(/\/$/, '')}/api/config` : `http://${deviceIP}:3001/api/config`;
+            const configToSave = {
+                ...editConfig,
+                demo_mode: demoMode,
+                demo_state: demoState,
+                demo_festival: demoFestival,
+                display_mode: displayMode,
+                show_seconds: showSeconds,
+                card_color: cardColor,
+                card_opacity: cardOpacity,
+                use_dynamic_color: useDynamicColor
+            };
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                mode: 'cors',
+                body: JSON.stringify(configToSave)
+            }).then(() => {
+                console.log('✅ 配置已保存到服务器');
+            }).catch(error => {
+                console.error('保存到服务器失败:', error);
+            });
+        }
     };
 
     // --- 切换显示模式 ---
@@ -478,9 +491,20 @@ const SmartDisplay = () => {
             if (response.ok) {
                 const remoteConfig = await response.json();
 
-                // 应用远程配置
-                setConfig(remoteConfig);
-                setEditConfig(remoteConfig);
+                // 保存主配置到 localStorage
+                const mainConfig = {
+                    ha_url: remoteConfig.ha_url,
+                    ha_token: remoteConfig.ha_token,
+                    weather_entity: remoteConfig.weather_entity,
+                    location_name: remoteConfig.location_name,
+                    mqtt_host: remoteConfig.mqtt_host,
+                    mqtt_port: remoteConfig.mqtt_port,
+                    mqtt_username: remoteConfig.mqtt_username,
+                    mqtt_password: remoteConfig.mqtt_password
+                };
+                localStorage.setItem('smart_screen_config', JSON.stringify(mainConfig));
+                setConfig(mainConfig);
+                setEditConfig(mainConfig);
 
                 if (remoteConfig.demo_mode !== undefined) {
                     setDemoMode(remoteConfig.demo_mode);
