@@ -17,6 +17,12 @@ const SettingsModal = ({
     const [apiTestResult, setApiTestResult] = useState(null);
     const [apiTestMessage, setApiTestMessage] = useState('');
 
+    // 生成实时版本号
+    const getBuildVersion = () => {
+        const now = new Date();
+        return now.toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+    };
+
     const testMqttConnection = async () => {
         setMqttTestResult('testing');
         setMqttTestMessage('正在测试 MQTT 连接...');
@@ -523,7 +529,7 @@ const SettingsModal = ({
 
                 <div className="p-6 border-t border-white/5 bg-white/5 flex justify-between items-center gap-4 shrink-0">
                     <div className="text-xs text-gray-500 font-mono">
-                        v1.0.0 Build {new Date().toISOString().slice(0,16).replace(/[-:]/g, '').replace('T', '-')}
+                        v1.0.0 Build {getBuildVersion()}
                     </div>
                     <div className="flex gap-4">
                         <button onClick={() => setShowSettings(false)} className="px-6 py-2.5 rounded-xl bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white/80 hover:text-white transition-all text-sm font-medium flex items-center gap-2">

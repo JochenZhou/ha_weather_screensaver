@@ -302,14 +302,18 @@ const SmartDisplay = () => {
                 }
 
                 console.log(`📥 ${isInitial ? '同步' : '检查'}远程配置:`, apiUrl);
-                const response = await fetch(apiUrl, {
+                const fetchOptions = {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json; charset=utf-8'
-                    },
-                    mode: 'cors'
-                });
+                    }
+                };
+                // 在 Android APP 中访问 localhost，不需要设置 CORS mode
+                if (!Capacitor.isNativePlatform()) {
+                    fetchOptions.mode = 'cors';
+                }
+                const response = await fetch(apiUrl, fetchOptions);
 
                 if (response.ok) {
                     const text = await response.text();
@@ -403,14 +407,18 @@ const SmartDisplay = () => {
                 }
 
                 console.log('🔍 检查同步触发器:', apiUrl);
-                const response = await fetch(apiUrl, {
+                const fetchOptions = {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json; charset=utf-8'
-                    },
-                    mode: 'cors'
-                });
+                    }
+                };
+                // 在 Android APP 中访问 localhost，不需要设置 CORS mode
+                if (!Capacitor.isNativePlatform()) {
+                    fetchOptions.mode = 'cors';
+                }
+                const response = await fetch(apiUrl, fetchOptions);
 
                 if (response.ok) {
                     const data = await response.json();
@@ -498,16 +506,21 @@ const SmartDisplay = () => {
                 card_opacity: cardOpacity,
                 use_dynamic_color: useDynamicColor
             };
-            
-            fetch(apiUrl, {
+
+            const fetchOptions = {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Accept': 'application/json; charset=utf-8'
                 },
-                mode: 'cors',
                 body: JSON.stringify(configToSave)
-            }).then(() => {
+            };
+            // 在 Android APP 中访问 localhost，不需要设置 CORS mode
+            if (!Capacitor.isNativePlatform()) {
+                fetchOptions.mode = 'cors';
+            }
+
+            fetch(apiUrl, fetchOptions).then(() => {
                 console.log('✅ 配置已保存到服务器');
             }).catch(error => {
                 console.error('保存到服务器失败:', error);
@@ -558,14 +571,18 @@ const SmartDisplay = () => {
                 return;
             }
 
-            const response = await fetch(apiUrl, {
+            const fetchOptions = {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json; charset=utf-8',
                     'Accept': 'application/json; charset=utf-8'
-                },
-                mode: 'cors'
-            });
+                }
+            };
+            // 在 Android APP 中访问 localhost，不需要设置 CORS mode
+            if (!Capacitor.isNativePlatform()) {
+                fetchOptions.mode = 'cors';
+            }
+            const response = await fetch(apiUrl, fetchOptions);
 
             if (response.ok) {
                 const text = await response.text();
