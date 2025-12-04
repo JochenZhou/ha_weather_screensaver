@@ -521,13 +521,18 @@ const SettingsModal = ({
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-white/5 bg-white/5 flex justify-end gap-4 shrink-0">
-                    <button onClick={() => setShowSettings(false)} className="px-6 py-2.5 rounded-xl bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white/80 hover:text-white transition-all text-sm font-medium flex items-center gap-2">
-                        <RotateCcw size={16} />取消
-                    </button>
-                    <button onClick={handleSaveConfig} className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-900/30 transition-all transform hover:scale-[1.02]">
-                        <Save size={18} />保存设置
-                    </button>
+                <div className="p-6 border-t border-white/5 bg-white/5 flex justify-between items-center gap-4 shrink-0">
+                    <div className="text-xs text-gray-500 font-mono">
+                        v1.0.0 Build {new Date().toISOString().slice(0,16).replace(/[-:]/g, '').replace('T', '-')}
+                    </div>
+                    <div className="flex gap-4">
+                        <button onClick={() => setShowSettings(false)} className="px-6 py-2.5 rounded-xl bg-[#2c2c2e] hover:bg-[#3a3a3c] text-white/80 hover:text-white transition-all text-sm font-medium flex items-center gap-2">
+                            <RotateCcw size={16} />取消
+                        </button>
+                        <button onClick={handleSaveConfig} className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-semibold flex items-center gap-2 shadow-lg shadow-blue-900/30 transition-all transform hover:scale-[1.02]">
+                            <Save size={18} />保存设置
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

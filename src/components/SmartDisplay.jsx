@@ -285,12 +285,16 @@ const SmartDisplay = () => {
 
         const loadRemoteConfig = async (isInitial = false) => {
             try {
-                if (!serverUrl && !deviceIP) return; // 没有有效地址时跳过
+                if (!serverUrl && !deviceIP) {
+                    console.log('⚠️ 跳过远程配置加载：没有配置服务器地址');
+                    return;
+                }
                 const apiUrl = serverUrl ? `${serverUrl.trim().replace(/\/$/, '')}/api/config` : `http://${deviceIP}:3001/api/config`;
 
+                console.log(`📥 ${isInitial ? '同步' : '检查'}远程配置:`, apiUrl);
                 const response = await fetch(apiUrl, {
                     method: 'GET',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json; charset=utf-8'
                     },
@@ -304,6 +308,7 @@ const SmartDisplay = () => {
                     // 只有在初始加载时才自动应用远程配置
                     // 后续的同步只检查是否有更新，但不自动覆盖本地修改
                     if (isInitial) {
+                        console.log('✅ 应用远程配置到本地:', remoteConfig);
                         // 保存主配置到 localStorage
                         const mainConfig = {
                             ha_url: remoteConfig.ha_url,
@@ -318,7 +323,7 @@ const SmartDisplay = () => {
                         localStorage.setItem('smart_screen_config', JSON.stringify(mainConfig));
                         setConfig(mainConfig);
                         setEditConfig(mainConfig);
-                        
+
                         if (remoteConfig.demo_mode !== undefined) {
                             setDemoMode(remoteConfig.demo_mode);
                             localStorage.setItem('demo_mode', remoteConfig.demo_mode);
@@ -352,13 +357,16 @@ const SmartDisplay = () => {
                             localStorage.setItem('use_dynamic_color', remoteConfig.use_dynamic_color);
                         }
                         setFetchError(null);
+                        console.log('✅ 远程配置同步完成');
                     } else {
                         // 非初始加载时，只检查连接状态，不自动应用配置
-                        console.log('Remote config checked, connection OK');
+                        console.log('✅ 远程配置连接正常（未应用配置）');
                     }
+                } else {
+                    console.error('❌ 远程配置请求失败:', response.status);
                 }
             } catch (error) {
-                console.error('Remote config sync failed:', error);
+                console.error('❌ 远程配置同步失败:', error);
             }
         };
 
@@ -368,40 +376,51 @@ const SmartDisplay = () => {
         // 检查同步触发器
         const checkSyncTrigger = async () => {
             try {
-                if (!serverUrl && !deviceIP) return;
+                if (!serverUrl && !deviceIP) {
+                    console.log('⚠️ 跳过同步检查：没有配置服务器地址');
+                    return;
+                }
                 const apiUrl = serverUrl ? `${serverUrl.trim().replace(/\/$/, '')}/api/sync-trigger` : `http://${deviceIP}:3001/api/sync-trigger`;
-                
+
+                console.log('🔍 检查同步触发器:', apiUrl);
                 const response = await fetch(apiUrl, {
                     method: 'GET',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json; charset=utf-8'
                     },
                     mode: 'cors'
                 });
-                
+
                 if (response.ok) {
                     const data = await response.json();
-                    
-                    // 如果是第一次检查（lastSyncTrigger为0），直接记录时间戳，不同步
+                    console.log('📊 服务器时间戳:', data.timestamp, '本地时间戳:', lastSyncTriggerRef.current);
+
+                    // 如果是第一次检查（lastSyncTrigger为0），记录时间戳但也触发一次同步确保配置最新
                     if (lastSyncTriggerRef.current === 0) {
+                        console.log('📌 首次初始化，记录时间戳并同步配置');
                         lastSyncTriggerRef.current = data.timestamp;
-                        console.log('📌 初始化同步时间戳:', data.timestamp);
+                        await loadRemoteConfig(true);
                         return;
                     }
-                    
+
                     // 检查是否有新的配置更新
                     if (data.timestamp > lastSyncTriggerRef.current) {
                         console.log('🔄 检测到远程配置更新，自动同步...', {
                             oldTimestamp: lastSyncTriggerRef.current,
-                            newTimestamp: data.timestamp
+                            newTimestamp: data.timestamp,
+                            timeDiff: data.timestamp - lastSyncTriggerRef.current
                         });
                         lastSyncTriggerRef.current = data.timestamp;
                         await loadRemoteConfig(true);
+                    } else {
+                        console.log('✅ 配置已是最新，无需同步');
                     }
+                } else {
+                    console.error('❌ 同步触发器请求失败:', response.status);
                 }
             } catch (error) {
-                console.error('检查同步触发器失败:', error);
+                console.error('❌ 检查同步触发器失败:', error);
             }
         };
 
