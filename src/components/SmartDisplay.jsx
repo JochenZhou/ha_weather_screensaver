@@ -382,15 +382,24 @@ const SmartDisplay = () => {
                 
                 if (response.ok) {
                     const data = await response.json();
-                    const now = Date.now();
-                    const configAge = now - data.timestamp;
                     
-                    // 如果配置超过3秒，认为过时，不同步
-                    if (configAge > 3000) {
+                    // 如果是第一次检查（lastSyncTrigger为0），直接记录时间戳，不同步
+                    if (lastSyncTrigger === 0) {
+                        setLastSyncTrigger(data.timestamp);
                         return;
                     }
                     
+                    // 检查是否有新的配置更新
                     if (data.timestamp > lastSyncTrigger) {
+                        const now = Date.now();
+                        const configAge = now - data.timestamp;
+                        
+                        // 如果配置超过3秒，认为过时，不同步
+                        if (configAge > 3000) {
+                            console.log('⏰ 配置更新超过3秒，跳过同步');
+                            return;
+                        }
+                        
                         console.log('🔄 检测到远程配置更新，自动同步...');
                         setLastSyncTrigger(data.timestamp);
                         await loadRemoteConfig(true);
