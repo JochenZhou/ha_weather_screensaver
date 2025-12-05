@@ -50,6 +50,7 @@ const SmartDisplay = () => {
     const [serverStatus, setServerStatus] = useState('');
     const [mqttConnected, setMqttConnected] = useState(false);
     const lastSyncTriggerRef = useRef(0);
+    const isSyncingRef = useRef(false);
 
     const [weather, setWeather] = useState({
         state: "sunny",
@@ -309,6 +310,11 @@ const SmartDisplay = () => {
         if (!useRemoteConfig) return;
 
         const loadRemoteConfig = async (isInitial = false) => {
+            if (isSyncingRef.current) {
+                console.log('⚠️ 同步进行中，跳过本次请求');
+                return;
+            }
+            isSyncingRef.current = true;
             try {
                 let apiUrl;
                 if (serverUrl) {
@@ -324,22 +330,18 @@ const SmartDisplay = () => {
 
                 const startTime = Date.now();
                 console.log(`📥 ${isInitial ? '同步' : '检查'}远程配置:`, apiUrl);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
                 const fetchOptions = {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json; charset=utf-8'
-                    },
-                    signal: controller.signal
+                    }
                 };
                 // 在 Android APP 中访问 localhost，不需要设置 CORS mode
                 if (!Capacitor.isNativePlatform()) {
                     fetchOptions.mode = 'cors';
                 }
                 const response = await fetch(apiUrl, fetchOptions);
-                clearTimeout(timeoutId);
                 const fetchTime = Date.now() - startTime;
                 console.log(`⏱️ loadRemoteConfig fetch 耗时: ${fetchTime}ms`);
 
@@ -409,6 +411,8 @@ const SmartDisplay = () => {
                 }
             } catch (error) {
                 console.error('❌ 远程配置同步失败:', error);
+            } finally {
+                isSyncingRef.current = false;
             }
         };
 
@@ -432,22 +436,18 @@ const SmartDisplay = () => {
 
                 const startTime = Date.now();
                 console.log('🔍 检查同步触发器:', apiUrl);
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000);
                 const fetchOptions = {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json; charset=utf-8'
-                    },
-                    signal: controller.signal
+                    }
                 };
                 // 在 Android APP 中访问 localhost，不需要设置 CORS mode
                 if (!Capacitor.isNativePlatform()) {
                     fetchOptions.mode = 'cors';
                 }
                 const response = await fetch(apiUrl, fetchOptions);
-                clearTimeout(timeoutId);
                 const fetchTime = Date.now() - startTime;
                 console.log(`⏱️ checkSyncTrigger fetch 耗时: ${fetchTime}ms`);
 
