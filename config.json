@@ -7,12 +7,14 @@
   "mqtt_port": "1884",
   "mqtt_username": "zhou",
   "mqtt_password": "641388165",
-  "demo_mode": false,
+  "demo_mode": true,
   "demo_state": "HEAVY_RAIN",
   "demo_festival": "元宵节",
   "display_mode": "flip_clock",
   "show_seconds": true,
   "card_color": "#1b2231",
   "card_opacity": 0.85,
-  "use_dynamic_color": true
+  "use_dynamic_color": true,
+  "enable_mqtt": true,
+  "enable_api": true
 }
