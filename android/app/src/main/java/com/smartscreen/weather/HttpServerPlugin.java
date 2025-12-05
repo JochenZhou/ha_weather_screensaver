@@ -62,7 +62,7 @@ public class HttpServerPlugin extends Plugin {
                     java.net.InetAddress addr = addresses.nextElement();
                     if (addr instanceof java.net.Inet4Address) {
                         String ip = addr.getHostAddress();
-                        org.json.JSONObject result = new org.json.JSONObject();
+                        com.getcapacitor.JSObject result = new com.getcapacitor.JSObject();
                         result.put("ip", ip);
                         call.resolve(result);
                         return;
