@@ -4,15 +4,11 @@ import React, { useEffect, useState } from 'react';
 const FlipUnit = ({ value, cardColor, cardOpacity }) => {
     const [prevValue, setPrevValue] = useState(value);
     const [isFlipping, setIsFlipping] = useState(false);
-    const [digitOpacity, setDigitOpacity] = useState(1);
 
     useEffect(() => {
         if (value !== prevValue) {
-            setDigitOpacity(0);
-            
             const flipTimer = setTimeout(() => {
                 setIsFlipping(true);
-                setDigitOpacity(1);
             }, 0);
 
             const endTimer = setTimeout(() => {
@@ -45,8 +41,88 @@ const FlipUnit = ({ value, cardColor, cardOpacity }) => {
 
                 {/* Static Upper Half - shows current value top */}
                 <div className="absolute top-0 left-0 w-full h-[128px] overflow-hidden z-20 rounded-t-2xl" style={bgStyle}>
-                    <div className="absolute w-full h-[260px] top-0 flex items-center justify-center text-[180px] font-mono font-bold text-[#e5e5e5] leading-[260px] tracking-wider" style={{ opacity: digitOpacity, transition: 'opacity 0.05s' }}>
-                        {value}
+                    <div className="absolute w-full h-[260px] top-0 flex items-center justify-center text-[180px] font-mono font-bold text-[#e5e5e5] leading-[260px] tracking-wider">
+                        {/* 
+                            Fix: When flipping starts (isFlipping=true), this static upper half is immediately covered 
+                            by the flip-upper (which shows prevValue). So we can safely switch this to 'value' 
+                            ONLY when flipping starts. 
+                            Actually, to prevent the flash (showing 'value' before flip-upper covers it), 
+                            we should keep showing 'prevValue' until the flip actually starts?
+                            
+                            Wait, the bug is: "Before flip starts, top half flashes new value".
+                            
+                            State transition:
+                            1. value changes from 1 to 2.
+                            2. useEffect triggers.
+                            3. isFlipping is FALSE initially.
+                            4. If we render {value} here, it shows 2 immediately.
+                            5. setTimeout(0) runs -> isFlipping becomes TRUE.
+                            6. flip-upper appears (showing prevValue=1).
+                            
+                            The flash happens between step 4 and 6.
+                            
+                            So:
+                            - When !isFlipping: Show prevValue (1).
+                            - When isFlipping: We can show value (2) because it's covered by flip-upper (1).
+                              BUT, once flip-upper flips down, this static upper half is revealed again? 
+                              No, static upper half is the background for the top part.
+                              When flip-upper flips down, it reveals the static upper half?
+                              
+                              Let's trace the layers:
+                              - Static Upper: z-20.
+                              - Flip Upper: z-30.
+                              
+                              Animation:
+                              - Flip Upper starts at 0deg (covering Static Upper).
+                              - Flip Upper rotates to -180deg (revealing Static Upper?? No, revealing what's behind it?)
+                              
+                              Wait, standard flip clock mechanics:
+                              Top Half:
+                              - Behind: New Number (Static Upper)
+                              - Front: Old Number (Flip Upper) -> Flips Down to reveal New Number.
+                              
+                              Bottom Half:
+                              - Behind: Old Number (Static Lower)
+                              - Front: New Number (Flip Lower) -> Flips Up (or rather, is revealed when Flip Upper moves?)
+                              
+                              Actually usually:
+                              - Static Upper: Shows New Number (Next).
+                              - Static Lower: Shows Old Number (Current).
+                              - Flapper (Top): Shows Old Number. Flips down to become Bottom.
+                              - Flapper (Bottom): Shows New Number. (Usually back of Top flapper).
+                              
+                              In this code:
+                              - Static Upper (z-20): Shows {value} (New).
+                              - Static Lower (z-10): Shows {prevValue} (Old).
+                              - Flip Upper (z-30): Shows {prevValue} (Old). Animates flipDown.
+                              - Flip Lower (z-40): Shows {value} (New). Animates flipUp.
+                              
+                              The issue is timing.
+                              value updates -> Render cycle 1 -> Static Upper shows New. Flip Upper NOT YET RENDERED (isFlipping false).
+                              -> FLASH of New Number on Top.
+                              -> useEffect -> setTimeout -> isFlipping true -> Render cycle 2 -> Flip Upper appears (covering Static Upper with Old).
+                              
+                              So, we need Static Upper to show Old Number (prevValue) UNTIL Flip Upper is ready?
+                              Or simply:
+                              If !isFlipping, Static Upper should show prevValue.
+                              If isFlipping, Static Upper should show value (because Flip Upper covers it).
+                              
+                              So: {isFlipping ? value : prevValue}
+                              
+                              Let's verify:
+                              1. value=1, prev=1. isFlipping=false. StaticUpper=1. Correct.
+                              2. value becomes 2. prev=1. isFlipping=false. StaticUpper=1. Correct (No flash).
+                              3. setTimeout -> isFlipping=true. StaticUpper=2. FlipUpper(z-30) appears showing prev(1).
+                                 FlipUpper covers StaticUpper. So user sees 1. Correct.
+                              4. Animation starts. FlipUpper flips down.
+                                 As FlipUpper moves, does it reveal StaticUpper?
+                                 Yes, FlipUpper rotates X from 0 to -180.
+                                 As it rotates, it reveals what's behind it (StaticUpper).
+                                 So StaticUpper MUST be '2' (value) during the animation.
+                                 
+                              So {isFlipping ? value : prevValue} is correct.
+                        */}
+                        {isFlipping ? value : prevValue}
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
                 </div>
@@ -56,7 +132,7 @@ const FlipUnit = ({ value, cardColor, cardOpacity }) => {
 
                 {/* Static Lower Half - shows previous value bottom */}
                 <div className="absolute bottom-0 left-0 w-full h-[128px] overflow-hidden z-10 rounded-b-2xl" style={{ ...bgStyle, filter: 'brightness(0.85)' }}>
-                    <div className="absolute w-full h-[260px] bottom-0 flex items-center justify-center text-[180px] font-mono font-bold text-[#e5e5e5] leading-[260px] tracking-wider" style={{ opacity: digitOpacity, transition: 'opacity 0.05s' }}>
+                    <div className="absolute w-full h-[260px] bottom-0 flex items-center justify-center text-[180px] font-mono font-bold text-[#e5e5e5] leading-[260px] tracking-wider">
                         {prevValue}
                     </div>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
