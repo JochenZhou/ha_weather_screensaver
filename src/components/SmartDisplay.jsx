@@ -346,7 +346,10 @@ const SmartDisplay = () => {
                 console.log(`⏱️ loadRemoteConfig fetch 耗时: ${fetchTime}ms`);
 
                 if (response.ok) {
+                    const textStartTime = Date.now();
                     const text = await response.text();
+                    const textTime = Date.now() - textStartTime;
+                    console.log(`⏱️ response.text() 耗时: ${textTime}ms`);
                     const remoteConfig = JSON.parse(text);
 
                     // 只有在初始加载时才自动应用远程配置
