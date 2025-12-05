@@ -50,6 +50,31 @@ public class HttpServerPlugin extends Plugin {
         }
     }
 
+    @PluginMethod
+    public void getIpAddress(PluginCall call) {
+        try {
+            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                java.net.NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+                java.util.Enumeration<java.net.InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    java.net.InetAddress addr = addresses.nextElement();
+                    if (addr instanceof java.net.Inet4Address) {
+                        String ip = addr.getHostAddress();
+                        org.json.JSONObject result = new org.json.JSONObject();
+                        result.put("ip", ip);
+                        call.resolve(result);
+                        return;
+                    }
+                }
+            }
+            call.reject("No IP address found");
+        } catch (Exception e) {
+            call.reject("Failed to get IP: " + e.getMessage());
+        }
+    }
+
     private static class WebServer extends NanoHTTPD {
         private android.content.Context context;
 

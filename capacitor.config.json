@@ -9,7 +9,7 @@
   "android": {
     "allowMixedContent": true,
     "backgroundColor": "#1a1a2e",
-    "webContentsDebuggingEnabled": false
+    "webContentsDebuggingEnabled": true
   },
   "plugins": {
     "SplashScreen": {

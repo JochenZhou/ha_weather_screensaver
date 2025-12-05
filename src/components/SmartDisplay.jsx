@@ -173,29 +173,54 @@ const SmartDisplay = () => {
 
     // --- 1.5. 获取局域网 IP 地址 ---
     useEffect(() => {
-        // 直接使用 hostname，在 Vite 开发环境和 Android 应用中都可用
-        const hostname = window.location.hostname;
-        if (hostname && hostname !== 'localhost') {
-            setDeviceIP(hostname);
-            console.log('Using IP:', hostname);
-        } else {
-            // 如果是 localhost，尝试通过 WebRTC 获取
-            const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-            pc.createDataChannel('');
-
-            pc.onicecandidate = (ice) => {
-                if (!ice || !ice.candidate || !ice.candidate.candidate) return;
-                const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
-                const match = ipRegex.exec(ice.candidate.candidate);
-                if (match && match[1] !== '0.0.0.0') {
-                    console.log('Detected IP:', match[1]);
-                    setDeviceIP(match[1]);
-                    pc.close();
+        const startTime = Date.now();
+        console.log('⏱️ 开始获取 IP 地址...');
+        
+        const getIP = async () => {
+            // 在 APP 中直接从 Android 获取 IP
+            if (Capacitor.isNativePlatform()) {
+                try {
+                    const HttpServer = (await import('@capacitor/core')).registerPlugin('HttpServer');
+                    const result = await HttpServer.getIpAddress();
+                    if (result.ip) {
+                        const elapsed = Date.now() - startTime;
+                        setDeviceIP(result.ip);
+                        console.log(`✅ 从 Android 获取 IP: ${result.ip} (耗时: ${elapsed}ms)`);
+                        return;
+                    }
+                } catch (error) {
+                    console.error('❌ 从 Android 获取 IP 失败:', error);
                 }
-            };
+            }
 
-            pc.createOffer().then(offer => pc.setLocalDescription(offer));
-        }
+            // 浏览器环境：直接使用 hostname
+            const hostname = window.location.hostname;
+            if (hostname && hostname !== 'localhost') {
+                const elapsed = Date.now() - startTime;
+                setDeviceIP(hostname);
+                console.log(`✅ 使用 hostname: ${hostname} (耗时: ${elapsed}ms)`);
+            } else {
+                // 如果是 localhost，尝试通过 WebRTC 获取
+                console.log('⏱️ 使用 WebRTC 获取 IP...');
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+                pc.createDataChannel('');
+
+                pc.onicecandidate = (ice) => {
+                    if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+                    const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/;
+                    const match = ipRegex.exec(ice.candidate.candidate);
+                    if (match && match[1] !== '0.0.0.0') {
+                        const elapsed = Date.now() - startTime;
+                        console.log(`✅ WebRTC 获取 IP: ${match[1]} (耗时: ${elapsed}ms)`);
+                        setDeviceIP(match[1]);
+                        pc.close();
+                    }
+                };
+
+                pc.createOffer().then(offer => pc.setLocalDescription(offer));
+            }
+        };
+        getIP();
     }, []);
 
     // --- 2. 演示模式天气更新 ---
@@ -398,6 +423,7 @@ const SmartDisplay = () => {
                     return;
                 }
 
+                const checkStartTime = Date.now();
                 console.log('🔍 检查同步触发器:', apiUrl);
                 const fetchOptions = {
                     method: 'GET',
@@ -411,10 +437,11 @@ const SmartDisplay = () => {
                     fetchOptions.mode = 'cors';
                 }
                 const response = await fetch(apiUrl, fetchOptions);
+                const fetchElapsed = Date.now() - checkStartTime;
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('📊 服务器时间戳:', data.timestamp, '本地时间戳:', lastSyncTriggerRef.current);
+                    console.log(`📊 服务器时间戳: ${data.timestamp}, 本地时间戳: ${lastSyncTriggerRef.current} (请求耗时: ${fetchElapsed}ms)`);
 
                     // 如果是第一次检查（lastSyncTrigger为0），记录时间戳但也触发一次同步确保配置最新
                     if (lastSyncTriggerRef.current === 0) {
