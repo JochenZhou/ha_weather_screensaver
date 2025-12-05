@@ -323,18 +323,22 @@ const SmartDisplay = () => {
                 }
 
                 console.log(`📥 ${isInitial ? '同步' : '检查'}远程配置:`, apiUrl);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
                 const fetchOptions = {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json; charset=utf-8'
-                    }
+                    },
+                    signal: controller.signal
                 };
                 // 在 Android APP 中访问 localhost，不需要设置 CORS mode
                 if (!Capacitor.isNativePlatform()) {
                     fetchOptions.mode = 'cors';
                 }
                 const response = await fetch(apiUrl, fetchOptions);
+                clearTimeout(timeoutId);
 
                 if (response.ok) {
                     const text = await response.text();
@@ -425,18 +429,22 @@ const SmartDisplay = () => {
 
                 const checkStartTime = Date.now();
                 console.log('🔍 检查同步触发器:', apiUrl);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
                 const fetchOptions = {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json; charset=utf-8',
                         'Accept': 'application/json; charset=utf-8'
-                    }
+                    },
+                    signal: controller.signal
                 };
                 // 在 Android APP 中访问 localhost，不需要设置 CORS mode
                 if (!Capacitor.isNativePlatform()) {
                     fetchOptions.mode = 'cors';
                 }
                 const response = await fetch(apiUrl, fetchOptions);
+                clearTimeout(timeoutId);
                 const fetchElapsed = Date.now() - checkStartTime;
 
                 if (response.ok) {
