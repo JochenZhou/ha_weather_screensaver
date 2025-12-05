@@ -227,10 +227,13 @@ public class HttpServerPlugin extends Plugin {
         private Response serveAsset(String path, String mimeType) {
             try {
                 InputStream is = context.getAssets().open(path);
+                byte[] buffer = new byte[is.available()];
+                is.read(buffer);
+                is.close();
                 if (mimeType.startsWith("text/") || mimeType.equals("application/json") || mimeType.equals("application/javascript")) {
                     mimeType += "; charset=utf-8";
                 }
-                return newChunkedResponse(Response.Status.OK, mimeType, is);
+                return newFixedLengthResponse(Response.Status.OK, mimeType, new String(buffer, "UTF-8"));
             } catch (IOException e) {
                 Log.e(TAG, "Asset not found: " + path, e);
                 return newFixedLengthResponse(Response.Status.NOT_FOUND, "text/plain", "Not Found");
