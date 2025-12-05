@@ -354,7 +354,7 @@ const SettingsModal = ({
                                         <p className="text-white font-mono text-[15px] tracking-wide bg-black/30 px-3 py-1 rounded-lg mb-1">
                                             {deviceIP ? `http://${deviceIP}:3001` : '正在获取IP地址...'}
                                         </p>
-                                        {Capacitor.isNativePlatform() && <p className="text-[11px] text-yellow-500/80 mt-1">状态: {localStorage.getItem('server_status') || '启动中...'}</p>}
+                                        <p className="text-[11px] text-yellow-500/80 mt-2">APP 将使用此地址同步配置</p>
                                         <button
                                             onClick={() => syncRemoteConfig && syncRemoteConfig()}
                                             className="mt-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all"

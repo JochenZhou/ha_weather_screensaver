@@ -285,19 +285,15 @@ const SmartDisplay = () => {
 
         const loadRemoteConfig = async (isInitial = false) => {
             try {
-                // 在 Capacitor/Android APP 中使用 localhost，在浏览器中使用 deviceIP
                 let apiUrl;
-                if (Capacitor.isNativePlatform()) {
-                    // Android APP 环境：连接本地服务器
-                    apiUrl = 'http://localhost:3001/api/config';
-                } else if (serverUrl) {
-                    // 浏览器环境且设置了服务器地址
+                if (serverUrl) {
+                    // 优先使用用户配置的服务器地址
                     apiUrl = `${serverUrl.trim().replace(/\/$/, '')}/api/config`;
                 } else if (deviceIP) {
-                    // 浏览器环境且有设备IP
+                    // 使用自动检测的设备IP（支持 APP 和浏览器）
                     apiUrl = `http://${deviceIP}:3001/api/config`;
                 } else {
-                    console.log('⚠️ 跳过远程配置加载：没有配置服务器地址');
+                    console.log('⚠️ 跳过远程配置加载：正在获取设备IP...');
                     return;
                 }
 
@@ -390,19 +386,15 @@ const SmartDisplay = () => {
         // 检查同步触发器
         const checkSyncTrigger = async () => {
             try {
-                // 在 Capacitor/Android APP 中使用 localhost，在浏览器中使用 deviceIP
                 let apiUrl;
-                if (Capacitor.isNativePlatform()) {
-                    // Android APP 环境：连接本地服务器
-                    apiUrl = 'http://localhost:3001/api/sync-trigger';
-                } else if (serverUrl) {
-                    // 浏览器环境且设置了服务器地址
+                if (serverUrl) {
+                    // 优先使用用户配置的服务器地址
                     apiUrl = `${serverUrl.trim().replace(/\/$/, '')}/api/sync-trigger`;
                 } else if (deviceIP) {
-                    // 浏览器环境且有设备IP
+                    // 使用自动检测的设备IP（支持 APP 和浏览器）
                     apiUrl = `http://${deviceIP}:3001/api/sync-trigger`;
                 } else {
-                    console.log('⚠️ 跳过同步检查：没有配置服务器地址');
+                    console.log('⚠️ 跳过同步检查：正在获取设备IP...');
                     return;
                 }
 
@@ -481,17 +473,14 @@ const SmartDisplay = () => {
         // 后台异步保存到服务器
         if (useRemoteConfig) {
             let apiUrl;
-            if (Capacitor.isNativePlatform()) {
-                // Android APP 环境：连接本地服务器
-                apiUrl = 'http://localhost:3001/api/config';
-            } else if (serverUrl) {
-                // 浏览器环境且设置了服务器地址
+            if (serverUrl) {
+                // 优先使用用户配置的服务器地址
                 apiUrl = `${serverUrl.trim().replace(/\/$/, '')}/api/config`;
             } else if (deviceIP) {
-                // 浏览器环境且有设备IP
+                // 使用自动检测的设备IP（支持 APP 和浏览器）
                 apiUrl = `http://${deviceIP}:3001/api/config`;
             } else {
-                console.log('⚠️ 无法保存到服务器：没有配置服务器地址');
+                console.log('⚠️ 无法保存到服务器：正在获取设备IP...');
                 return;
             }
 
