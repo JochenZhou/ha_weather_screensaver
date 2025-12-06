@@ -190,7 +190,7 @@ const SmartDisplay = () => {
     useEffect(() => {
         const startTime = Date.now();
         console.log('⏱️ 开始获取 IP 地址...');
-        
+
         const getIP = async () => {
             // 在 APP 中直接从 Android 获取 IP
             if (Capacitor.isNativePlatform()) {
@@ -526,10 +526,10 @@ const SmartDisplay = () => {
         localStorage.setItem('card_color', cardColor);
         localStorage.setItem('card_opacity', cardOpacity);
         localStorage.setItem('use_dynamic_color', useDynamicColor);
-        
+
         // 立即关闭设置界面
         setShowSettings(false);
-        
+
         // 后台异步保存到服务器
         if (useRemoteConfig) {
             let apiUrl;
@@ -927,13 +927,21 @@ const SmartDisplay = () => {
                                     <div className="flex items-center space-x-4 text-2xl">
                                         {getWeatherIcon(weather.mappedKey)}
                                         <span className="text-3xl">{getWeatherText(weather.mappedKey)}</span>
-                                        <span className="text-4xl font-light ml-2">{weather.temperature}°</span>
+                                        <span className="text-4xl font-light ml-2">{weather.temperature}℃</span>
                                         {demoMode && <span className="bg-blue-500/80 text-[10px] px-1.5 py-0.5 rounded text-white font-bold tracking-wider uppercase ml-2 shadow-sm">DEMO</span>}
                                     </div>
                                     <div className="h-6 w-px bg-white/20"></div>
                                     <div className="text-xl text-white/80 tracking-widest font-light uppercase whitespace-nowrap">
-                                        {formatDate(now)} · {lunarData.dayStr}
+                                        {formatDate(now)} · <span style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>{lunarData.dayStr}</span>
                                     </div>
+                                    {((demoMode && demoFestival) || lunarData.festivalStr) && (
+                                        <>
+                                            <div className="h-6 w-px bg-white/20"></div>
+                                            <div className="text-xl text-yellow-300 font-medium tracking-wider" style={{ fontFamily: 'KaiTi, STKaiti, SimKai, serif' }}>
+                                                {(demoMode && demoFestival) ? demoFestival : lunarData.festivalStr}
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         ) : (
@@ -941,9 +949,22 @@ const SmartDisplay = () => {
                                 {/* Left Info Column */}
                                 <div className="col-span-5 flex flex-col justify-between pt-8 pb-4 pl-2">
                                     <div>
-                                        <h1 className="text-[140px] leading-none font-bold tracking-tighter text-white w-full drop-shadow-2xl font-[Helvetica Neue,Arial,sans-serif]">
-                                            {formatTime(now)}
-                                        </h1>
+                                        <div className="flex items-center justify-start text-white leading-none tracking-tighter drop-shadow-2xl" style={{ fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif' }}>
+                                            {/* Hours */}
+                                            <span className="text-[140px] font-bold tabular-nums">
+                                                {formatTime(now).split(':')[0]}
+                                            </span>
+
+                                            {/* Styled Colon */}
+                                            <span className="text-[120px] font-medium mx-1 pb-4 opacity-90">
+                                                :
+                                            </span>
+
+                                            {/* Minutes */}
+                                            <span className="text-[140px] font-bold tabular-nums">
+                                                {formatTime(now).split(':')[1]}
+                                            </span>
+                                        </div>
 
                                         <div className="mt-4 text-3xl font-light text-white/95 tracking-widest drop-shadow-lg uppercase">
                                             {formatDate(now)}
@@ -952,7 +973,7 @@ const SmartDisplay = () => {
                                         <div className="mt-6 flex items-center space-x-4 text-2xl text-white font-medium drop-shadow-lg bg-black/20 backdrop-blur-md w-fit px-4 py-2 rounded-xl border border-white/10 shadow-lg">
                                             {getWeatherIcon(weather.mappedKey)}
                                             <span>{getWeatherText(weather.mappedKey)}</span>
-                                            <span className="text-3xl font-light">{weather.temperature}°</span>
+                                            <span className="text-3xl font-light">{weather.temperature}℃</span>
                                             {demoMode && <span className="bg-blue-500/80 text-[10px] px-1.5 py-0.5 rounded text-white font-bold tracking-wider uppercase ml-2 shadow-sm">DEMO</span>}
                                         </div>
                                     </div>

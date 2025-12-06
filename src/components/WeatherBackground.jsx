@@ -57,12 +57,7 @@ const WeatherBackground = ({ weatherKey, festival }) => {
 
     const renderCelestialBody = (key) => {
         if (key === 'CLEAR_DAY' || key === 'PARTLY_CLOUDY_DAY') {
-            return (
-                <div className="absolute top-[-15%] left-[-15%] w-[70%] h-[70%] z-0 pointer-events-none">
-                    <div className="absolute inset-0 bg-blue-300/20 blur-[80px] rounded-full animate-breathe"></div>
-                    <div className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0_340deg,rgba(255,255,255,0.05)_360deg)] animate-[sun-ray-rotate_60s_linear_infinite] opacity-40"></div>
-                </div>
-            );
+            return null;
         }
         if (key === 'CLEAR_NIGHT' || key === 'PARTLY_CLOUDY_NIGHT') {
             return (
