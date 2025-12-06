@@ -6,7 +6,8 @@ const getDevicePerformance = () => {
     const ua = navigator.userAgent.toLowerCase();
     const match = ua.match(/android (\d+)/);
     const androidVersion = match ? parseInt(match[1]) : 999;
-    const isOldDevice = (androidVersion >= 4 && androidVersion <= 6) || window.innerWidth < 1024;
+    const isOldDevice = androidVersion >= 4 && androidVersion <= 6;
+    console.log('🔍 Performance detection:', { ua, androidVersion, isOldDevice, performance: isOldDevice ? 'low' : 'high' });
     return isOldDevice ? 'low' : 'high';
 };
 

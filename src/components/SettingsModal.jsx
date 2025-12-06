@@ -156,7 +156,7 @@ const SettingsModal = ({
             />
 
             {/* Modal Window - Responsive Optimization */}
-            <div className="relative w-[95%] h-[90%] md:w-auto md:h-auto md:min-w-[800px] md:min-h-[500px] max-w-5xl max-h-[800px] bg-[#1c1c1e]/90 backdrop-blur-xl md:rounded-2xl border border-white/10 shadow-2xl flex overflow-hidden transition-all duration-300 md:aspect-[4/3] lg:aspect-video">
+            <div className="relative w-[95%] h-[90%] md:w-auto md:h-auto md:min-w-[800px] md:min-h-[500px] max-w-5xl max-h-[85vh] bg-[#1c1c1e]/90 backdrop-blur-xl md:rounded-2xl border border-white/10 shadow-2xl flex overflow-hidden transition-all duration-300 md:aspect-[4/3] lg:aspect-video">
 
                 {/* Sidebar */}
                 <div className="w-[260px] bg-[#2c2c2e]/50 border-r border-white/5 flex flex-col shrink-0">
@@ -170,8 +170,8 @@ const SettingsModal = ({
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
                                 className={`w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-200 ${activeTab === item.id
-                                    ? 'bg-[#0a84ff] text-white'
-                                    : 'text-[#8e8e93] hover:bg-white/5 hover:text-white'
+                                        ? 'bg-[#0a84ff] text-white'
+                                        : 'text-[#8e8e93] hover:bg-white/5 hover:text-white'
                                     }`}
                             >
                                 <div className={`w-7 h-7 rounded-md flex items-center justify-center shrink-0 ${activeTab === item.id ? 'bg-white/20' : item.color}`}>
@@ -674,25 +674,24 @@ const SettingsModal = ({
                                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                                     <div className="text-center py-8">
                                         <div className="w-24 h-24 bg-transparent rounded-[24px] mx-auto shadow-sm flex items-center justify-center mb-4 overflow-hidden">
-                                            {/* Used actual app logo */}
+                                            {/* Used actual appLogo */}
                                             <img src={appLogo} alt="SmartScreen Logo" className="w-full h-full object-contain drop-shadow-2xl" />
                                         </div>
                                         <h1 className="text-3xl font-bold text-white mb-1 tracking-tight">HA 天气屏</h1>
                                     </div>
 
                                     <div className="bg-[#2c2c2e] rounded-xl overflow-hidden divide-y divide-white/5">
-                                        <a href="https://github.com/JochenZhou/SmartScreenUI" target="_blank" rel="noopener noreferrer" className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors group">
+                                        <div className="p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-[#24292e] flex items-center justify-center">
                                                     <Github className="text-white" size={18} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[17px] text-white group-hover:text-blue-400 transition-colors">项目源码</p>
-                                                    <p className="text-[13px] text-gray-500">GitHub 仓库</p>
+                                                    <p className="text-[17px] text-white">项目源码</p>
+                                                    <p className="text-[13px] text-gray-500 font-mono select-all">https://github.com/JochenZhou/SmartScreenUI</p>
                                                 </div>
                                             </div>
-                                            <div className="text-[#8e8e93]">{'>'}</div>
-                                        </a>
+                                        </div>
                                         <div className="p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
@@ -706,58 +705,6 @@ const SettingsModal = ({
                                         </div>
                                     </div>
 
-                                    <div className="space-y-4">
-                                        <h3 className="text-[13px] font-medium text-[#8e8e93] uppercase tracking-wide ml-4">支持与赞助</h3>
-                                        <div className="bg-[#2c2c2e] rounded-xl p-6 flex flex-col items-center text-center">
-                                            <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mb-3">
-                                                <Heart className="text-red-500 fill-red-500" size={24} />
-                                            </div>
-                                            <h3 className="text-lg font-bold text-white mb-1">感谢支持</h3>
-                                            <p className="text-[#8e8e93] text-[13px] mb-6 max-w-xs leading-relaxed">
-                                                如果这个项目对你有帮助，可以请我喝杯咖啡。你的支持是持续更新的动力！
-                                            </p>
-
-                                            <div className="flex gap-4 w-full max-w-md justify-center">
-                                                {/* WeChat Pay */}
-                                                <div className="flex-1 flex flex-col items-center gap-2">
-                                                    <div className="w-full aspect-square bg-[#09bb07]/10 rounded-xl flex items-center justify-center border border-[#09bb07]/20 overflow-hidden relative group">
-                                                        {/* Image Path: public/wxpay.png */}
-                                                        <img
-                                                            src="/wxpay.png"
-                                                            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
-                                                            alt="WeChat Pay"
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                        <div className="absolute inset-0 hidden flex-col items-center justify-center bg-[#2c2c2e]">
-                                                            <span className="text-[10px] text-white/30 font-mono mb-1">未找到图片</span>
-                                                            <span className="text-[10px] text-[#09bb07]">wxpay.png</span>
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-[13px] text-white/80">微信支付</span>
-                                                </div>
-
-                                                {/* Alipay */}
-                                                <div className="flex-1 flex flex-col items-center gap-2">
-                                                    <div className="w-full aspect-square bg-[#1677ff]/10 rounded-xl flex items-center justify-center border border-[#1677ff]/20 overflow-hidden relative group">
-                                                        {/* Image Path: public/alipay.png */}
-                                                        <img
-                                                            src="/alipay.png"
-                                                            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
-                                                            alt="Alipay"
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                        <div className="absolute inset-0 hidden flex-col items-center justify-center bg-[#2c2c2e]">
-                                                            <span className="text-[10px] text-white/30 font-mono mb-1">未找到图片</span>
-                                                            <span className="text-[10px] text-[#1677ff]">alipay.png</span>
-                                                        </div>
-                                                    </div>
-                                                    <span className="text-[13px] text-white/80">支付宝</span>
-                                                </div>
-                                            </div>
-
-
-                                        </div>
-                                    </div>
                                 </div>
                             )}
 
