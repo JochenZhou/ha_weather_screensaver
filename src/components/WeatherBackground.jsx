@@ -198,13 +198,26 @@ const WeatherBackground = ({ weatherKey, festival }) => {
 
     const renderFog = (key) => {
         if (key.includes('FOG') || key.includes('HAZE')) {
-            let opacity = 'opacity-30';
-            if (key.includes('HEAVY')) opacity = 'opacity-80';
-            else if (key.includes('MODERATE') || key === 'FOG' || key === 'HAZE') opacity = 'opacity-50';
+            const isHaze = key.includes('HAZE');
+            const hazeColor = isHaze ? 'from-amber-100/40' : 'from-white/40';
+            const hazeTint = isHaze ? 'bg-yellow-200/20' : 'bg-white/30';
+
+            let opacity = 'opacity-30', height = 'h-[60%]', blur = 'blur-[60px]';
+            if (key.includes('HEAVY')) {
+                opacity = 'opacity-80';
+                height = 'h-[80%]';
+                blur = 'blur-[80px]';
+            } else if (key.includes('MODERATE') || key === 'FOG' || key === 'HAZE') {
+                opacity = 'opacity-50';
+                height = 'h-[70%]';
+                blur = 'blur-[70px]';
+            }
+
             return (
                 <div className="particle-container z-20 pointer-events-none">
-                    <div className={`absolute bottom-0 left-0 w-full h-[60%] bg-gradient-to-t from-white/40 to-transparent ${opacity}`}></div>
-                    <div className={`absolute bottom-[-20%] left-[-20%] w-[140%] h-[50%] bg-white/30 blur-[60px] rounded-full ${opacity}`}></div>
+                    <div className={`absolute bottom-0 left-0 w-full ${height} bg-gradient-to-t ${hazeColor} to-transparent ${opacity}`}></div>
+                    <div className={`absolute bottom-[-20%] left-[-20%] w-[140%] h-[50%] ${hazeTint} ${blur} rounded-full ${opacity}`}></div>
+                    {isHaze && <div className={`absolute bottom-[10%] right-[-10%] w-[100%] h-[40%] bg-amber-200/15 blur-[50px] rounded-full ${opacity} animate-breathe`}></div>}
                 </div>
             );
         }

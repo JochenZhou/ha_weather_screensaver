@@ -999,7 +999,7 @@ const SmartDisplay = () => {
                                 <div className="col-span-7 pt-4 pl-8 pr-0 flex items-center">
                                     <div className="grid grid-cols-7 gap-y-1 text-center w-full">
                                         {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
-                                            <div key={day} className="text-white/80 font-medium text-sm mb-4 uppercase tracking-widest drop-shadow-md">
+                                            <div key={day} className="text-white/80 font-medium text-xl mb-4 uppercase tracking-widest drop-shadow-md">
                                                 {day}
                                             </div>
                                         ))}
