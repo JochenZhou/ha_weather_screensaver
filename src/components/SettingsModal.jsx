@@ -299,29 +299,26 @@ const SettingsModal = ({
                                                             onChange={(e) => { setDemoState(e.target.value); localStorage.setItem('demo_state', e.target.value); }}
                                                             className="bg-transparent text-[#0a84ff] text-[17px] focus:outline-none text-right cursor-pointer dir-rtl pl-4 py-1"
                                                         >
-                                                            <option value="CLEAR_DAY">☀️ 晴天</option>
-                                                            <option value="CLEAR_NIGHT">🌙 晴夜</option>
-                                                            <option value="PARTLY_CLOUDY_DAY">🌤️ 多云(日)</option>
-                                                            <option value="PARTLY_CLOUDY_NIGHT">☁️ 多云(夜)</option>
-                                                            <option value="CLOUDY">☁️ 阴天</option>
-                                                            <option value="LIGHT_HAZE">🌫️ 轻雾</option>
-                                                            <option value="MODERATE_HAZE">🌫️ 中雾</option>
-                                                            <option value="HEAVY_HAZE">🌫️ 大雾</option>
+                                                            <option value="CLEAR_DAY">☀️ 晴</option>
+                                                            <option value="CLEAR_NIGHT">🌙 晴</option>
+                                                            <option value="PARTLY_CLOUDY_DAY">🌤️ 多云</option>
+                                                            <option value="PARTLY_CLOUDY_NIGHT">☁️ 多云</option>
+                                                            <option value="CLOUDY">☁️ 阴</option>
+                                                            <option value="LIGHT_HAZE">🌫️ 轻度雾霾</option>
+                                                            <option value="MODERATE_HAZE">🌫️ 中度雾霾</option>
+                                                            <option value="HEAVY_HAZE">🌫️ 重度雾霾</option>
                                                             <option value="LIGHT_RAIN">🌦️ 小雨</option>
                                                             <option value="MODERATE_RAIN">🌧️ 中雨</option>
                                                             <option value="HEAVY_RAIN">🌧️ 大雨</option>
                                                             <option value="STORM_RAIN">⛈️ 暴雨</option>
+                                                            <option value="FOG">🌫️ 雾</option>
                                                             <option value="LIGHT_SNOW">🌨️ 小雪</option>
                                                             <option value="MODERATE_SNOW">❄️ 中雪</option>
                                                             <option value="HEAVY_SNOW">❄️ 大雪</option>
                                                             <option value="STORM_SNOW">❄️ 暴雪</option>
                                                             <option value="DUST">💨 浮尘</option>
                                                             <option value="SAND">💨 沙尘</option>
-                                                            <option value="THUNDER_SHOWER">⛈️ 雷阵雨</option>
-                                                            <option value="HAIL">🧊 冰雹</option>
-                                                            <option value="SLEET">🌨️ 雨夹雪</option>
                                                             <option value="WIND">💨 大风</option>
-                                                            <option value="HAZE">🌫️ 雾霾</option>
                                                         </select>
                                                     </div>
                                                     <div className="p-4 flex items-center justify-between">
